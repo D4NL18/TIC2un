@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { SomService } from '../../services/som.service';
 import { CommonModule } from '@angular/common';
 
@@ -10,6 +10,8 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule]
 })
 export class SomResultsComponent {
+  @Output() trainRequested = new EventEmitter<void>();
+
   imageUrl: string | undefined;
   isLoading: boolean = false; // Variável para rastrear o estado de carregamento
 
