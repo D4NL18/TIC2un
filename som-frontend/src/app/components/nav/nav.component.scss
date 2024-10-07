@@ -1,0 +1,28 @@
+.main-nav {
+    width: 100%;
+    height: 10vh;
+    background-color: lightsteelblue;
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.3);
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+
+    .nav-box {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+
+        width: 100%;
+        height: 100%;
+        
+        list-style-type: none;
+
+        .nav-text {
+            outline: none;
+            text-decoration: none;
+            color: black;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+        
+    }
+}

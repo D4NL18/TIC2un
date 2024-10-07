@@ -1,0 +1,83 @@
+from flask import Flask, jsonify, request, send_file
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+import os
+
+app = Flask(__name__)
+
+# Função para calcular a distância euclidiana
+def euclidean_distance(x, y):
+    return np.sqrt(np.sum((x - y) ** 2))
+
+# Função para encontrar o neurônio vencedor
+def find_bmu(som, sample):
+    bmu_idx = np.argmin([euclidean_distance(neuron, sample) for neuron in som.reshape(-1, som.shape[2])])
+    return np.unravel_index(bmu_idx, som.shape[:2])
+
+# Função para atualizar os pesos
+def update_weights(som, sample, bmu_idx, iteration, max_iterations, learning_rate, radius):
+    learning_rate_decay = learning_rate * np.exp(-iteration / max_iterations)
+    radius_decay = radius * np.exp(-iteration / max_iterations)
+
+    for i in range(som.shape[0]):
+        for j in range(som.shape[1]):
+            distance_to_bmu = euclidean_distance(np.array([i, j]), np.array(bmu_idx))
+            if distance_to_bmu <= radius_decay:
+                influence = np.exp(-distance_to_bmu**2 / (2 * (radius_decay ** 2)))
+                som[i, j, :] += influence * learning_rate_decay * (sample - som[i, j, :])
+
+# Função para treinar o SOM
+def train_som(X, som, max_iterations=1000, learning_rate=0.5, radius=3):
+    for iteration in range(max_iterations):
+        for sample in X:
+            bmu_idx = find_bmu(som, sample)
+            update_weights(som, sample, bmu_idx, iteration, max_iterations, learning_rate, radius)
+
+@app.route('/train-som', methods=['POST'])
+def train_som_endpoint():
+    # Carregar o dataset Iris e normalizar
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    scaler = MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # Inicializar a rede SOM
+    som_grid_size = 7
+    som = np.random.rand(som_grid_size, som_grid_size, X.shape[1])
+
+    # Treinar o SOM
+    train_som(X_scaled, som, max_iterations=500, learning_rate=0.5, radius=3)
+
+    # Gerar visualização
+    plt.figure(figsize=(10, 10))
+    colors = ['r', 'g', 'b']
+    markers = ['o', 's', 'D']
+
+    for i, sample in enumerate(X_scaled):
+        bmu_idx = find_bmu(som, sample)
+        plt.plot(bmu_idx[0] + 0.5, bmu_idx[1] + 0.5, markers[y[i]], markerfacecolor='None',
+                 markeredgecolor=colors[y[i]], markersize=12, markeredgewidth=2)
+
+    plt.xticks(np.arange(som_grid_size + 1))
+    plt.yticks(np.arange(som_grid_size + 1))
+    plt.grid()
+    plt.title("Self-Organizing Map (SOM) - Implementação com Flask")
+
+    # Salvar o gráfico e retornar o caminho da imagem
+    image_path = 'static/som_plot.png'
+    plt.savefig(image_path)
+
+    return jsonify({"message": "SOM trained successfully", "image_path": image_path})
+
+@app.route('/get-image', methods=['GET'])
+def get_image():
+    image_path = 'static/som_plot.png'
+    if os.path.exists(image_path):
+        return send_file(image_path, mimetype='image/png')
+    return jsonify({"error": "Image not found"}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True)

@@ -1,0 +1,31 @@
+.som-page-main {
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+    height: 90vh;
+
+    .som-page-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .som-page-title-container {
+            font-size: 2rem;
+        }
+
+        .som-page-img-box {
+            display: flex;
+            width: 500px;
+            height: 500px;
+
+            .img {
+                width: 100%;
+                height: 100%;
+                background-color: blue;
+            }
+        }
+    }
+    
+}
