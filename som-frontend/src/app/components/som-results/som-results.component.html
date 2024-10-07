@@ -1,0 +1,13 @@
+<div class="som-result-container">
+    <button (click)="trainSom()">Treinar SOM</button>
+  
+    <div *ngIf="isLoading" class="loading-som-result-box">
+      <p>Carregando... Por favor, aguarde.</p> <!-- Mensagem de carregamento -->
+    </div>
+  
+    <div *ngIf="imageUrl" class="image-som-result-box">
+      <h3>Imagem Gerada:</h3>
+      <img [src]="imageUrl" alt="SOM Plot" class="som-result-image" />
+    </div>
+  </div>
+  

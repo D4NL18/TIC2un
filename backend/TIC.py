@@ -1,11 +1,14 @@
 from flask import Flask, jsonify, request, send_file
+from flask_cors import CORS  # Importa CORS
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import os
+import tempfile
 
 app = Flask(__name__)
+CORS(app)  # Adiciona CORS ao aplicativo Flask
 
 # Função para calcular a distância euclidiana
 def euclidean_distance(x, y):
@@ -66,15 +69,21 @@ def train_som_endpoint():
     plt.grid()
     plt.title("Self-Organizing Map (SOM) - Implementação com Flask")
 
-    # Salvar o gráfico e retornar o caminho da imagem
-    image_path = 'static/som_plot.png'
-    plt.savefig(image_path)
+    # Salvar o gráfico em um diretório temporário
+    try:
+        temp_dir = tempfile.gettempdir()
+        image_path = os.path.join(temp_dir, 'som_plot.png')  # Salvar no diretório temporário
+        plt.savefig(image_path)  # Tente salvar a imagem
+    except Exception as e:
+        print(f"Erro ao salvar a imagem: {e}")
+        return jsonify({"error": "Falha ao salvar a imagem."}), 500
 
     return jsonify({"message": "SOM trained successfully", "image_path": image_path})
 
 @app.route('/get-image', methods=['GET'])
 def get_image():
-    image_path = 'static/som_plot.png'
+    temp_dir = tempfile.gettempdir()
+    image_path = os.path.join(temp_dir, 'som_plot.png')
     if os.path.exists(image_path):
         return send_file(image_path, mimetype='image/png')
     return jsonify({"error": "Image not found"}), 404

@@ -3,7 +3,7 @@ import { SomComponent } from './views/som/som.component';
 
 export const routes: Routes = [
     {
-        path: "som",
+        path: "",
         component: SomComponent
     },
 ];
