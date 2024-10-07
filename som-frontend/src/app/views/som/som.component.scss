@@ -1,6 +1,5 @@
 .som-page-main {
     display: flex;
-    justify-content: center;
     width: 100vw;
     height: 90vh;
 
@@ -10,6 +9,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: space-evenly;
 
         .som-page-title-container {
             font-size: 2rem;
