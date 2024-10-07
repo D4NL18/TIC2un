@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, send_file
-from flask_cors import CORS  # Importa CORS
+from flask_cors import CORS
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import MinMaxScaler
