@@ -8,14 +8,14 @@ import { SomResultsComponent } from '../../components/som-results/som-results.co
   standalone: true,
   imports: [NavComponent, ButtonComponent, SomResultsComponent],
   templateUrl: './som.component.html',
-  styleUrls: ['./som.component.scss'] // Corrigido para 'styleUrls' em vez de 'styleUrl'
+  styleUrls: ['./som.component.scss']
 })
 export class SomComponent {
-  @ViewChild(SomResultsComponent) somResultsComponent!: SomResultsComponent; // Adiciona uma referência ao componente filho
+  @ViewChild(SomResultsComponent) somResultsComponent!: SomResultsComponent;
 
   onTrainSom() {
-    if (this.somResultsComponent) { // Verifica se a referência está definida
-      this.somResultsComponent.trainSom(); // Chama a função trainSom do componente filho
+    if (this.somResultsComponent) {
+      this.somResultsComponent.trainSom();
     }
   }
 }
