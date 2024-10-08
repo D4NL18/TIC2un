@@ -1,0 +1,11 @@
+<div class="svm-result-container">
+    <div *ngIf="isLoading" class="loading-svm-result-bot">
+        <app-loading-spinner />
+    </div>
+    <div *ngIf="imageUrl" class="image-svm-result-box">
+        <img [src]="imageUrl" alt="SVM Confusion Matrix" class="svm-result-image">
+    </div>
+    <div *ngIf="accuracy !== undefined">
+        <p>Accuracy: {{ accuracy * 100}}% </p>
+    </div>
+</div>

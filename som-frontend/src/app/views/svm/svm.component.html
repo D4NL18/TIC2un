@@ -1,0 +1,19 @@
+<header>
+    <app-nav />
+</header>
+<main class="svm-page-main">
+    <section class="svm-page-container">
+        <div class="svm-page-title-container">
+            <h1>
+                Bem vindo à Classificação SVM
+            </h1>
+        </div>
+        <div class="svm-page-img-box">
+            <app-svm-results />
+        </div>
+        <div class="svm-button-box">
+            <app-button (click)="onRunSVM()">Clique aqui para realizar SVM</app-button>
+            <p>Obs: Pode demorar um pouco</p>
+        </div>
+    </section>
+</main>

@@ -1,0 +1,44 @@
+.svm-page-main {
+    display: flex;
+    width: 100vw;
+    height: 90vh;
+
+    .svm-page-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+
+        .svm-page-title-container {
+            font-size: 1.75rem;
+            
+
+            h1 {
+                font-weight: bold;
+            }
+        }
+
+        .svm-page-img-box {
+            display: flex;
+            width: 500px;
+            height: 500px;
+
+            .img {
+                width: 100%;
+                height: 100%;
+                background-color: blue;
+            }
+        }
+        .svm-button-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            font-size: 1rem;
+        }
+    }
+    
+}

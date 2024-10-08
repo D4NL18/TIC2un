@@ -1,0 +1,37 @@
+.svm-result-container {
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 500px;
+    height: 500px;
+
+    .initial-svm-result-box {
+        border: dashed 1px black;
+        width: 100%;
+        height: 100%;
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .loading-svm-result-box {  
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .image-svm-result-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+
+        .svm-result-image {
+            width: 100%;
+            height: 100%;
+        }
+    }
+}
