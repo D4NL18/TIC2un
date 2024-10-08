@@ -1,14 +1,15 @@
 # Passo 1: Imports
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn import datasets
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import joblib
+import io
 import os
 
 # Passo 7: Importar o Modelo SVM
@@ -18,6 +19,8 @@ app = Flask(__name__)
 CORS(app)
 
 results = None
+
+plt.switch_backend('Agg')
 
 def run_svm():
     global results
@@ -43,7 +46,7 @@ def run_svm():
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
     # Passo 8: Criar uma Instância do Modelo
-    svm_model = SVC(kernel='linear', C=1.0)
+    svm_model = SVC()
 
     # Passo 9: Treinar o Modelo
     svm_model.fit(X_train, y_train)
@@ -63,31 +66,38 @@ def run_svm():
     plt.ylabel('Verdadeiro')
     plt.title('Matriz de Confusão')
 
-    # Salvar a imagem
-    img_path = 'confusion_matrix.png'
-    plt.savefig(img_path)
-    plt.close()  # Fecha a figura para liberar memória
+    # Salvar imagem para enviar no get
+    img_bytes = io.BytesIO()
+    plt.savefig(img_bytes, format='png')
+    img_bytes.seek(0)
+    plt.close() 
 
     # Passo 13: Ajustar Hiperparâmetros
     param_grid = {
-        'C': [0.1, 1, 10, 100],
-        'gamma': ['scale', 'auto'],
-        'kernel': ['linear', 'rbf', 'poly']
+        'kernel': ['linear', 'rbf'],
+        'C': [0.1, 1.0, 10.0],
+        'gamma': ['scale', 'auto'] 
     }
-    
-    grid_search = GridSearchCV(SVC(), param_grid, refit=True, verbose=1)
+    grid_search = GridSearchCV(svm_model, param_grid, cv=5)
     grid_search.fit(X_train, y_train)
-    best_params = grid_search.best_params_
+
+    best_svm_model = grid_search.best_estimator_
 
     # Passo 14: Documentar e Salvar o Modelo
-    joblib.dump(svm_model, 'svm_model_iris.pkl')
+    backup_dir = 'backend/backup_svm'
+
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+
+    model_filename = os.path.join(backup_dir, 'best_svm_model.joblib')
+    joblib.dump(best_svm_model, model_filename)
+    print(f"Modelo treinado salvo como {model_filename}")
 
     results = {
         'accuracy': accuracy,
         'confusion_matrix': conf_matrix.tolist(),
         'classification_report': classification_rep,
-        'best_params': best_params,
-        'image_path': img_path  # Adiciona o caminho da imagem ao resultado
+        'image_data': img_bytes.getvalue()
     }
 
 # Post (executar SVM)
@@ -96,23 +106,25 @@ def run_svm_endpoint():
     run_svm()
     return jsonify({"message": "Modelo SVM executado com sucesso!"})
 
-# Get (Enviar resultados)
+# Get (resultados)
 @app.route('/results', methods=['GET'])
-def get_results():
+def fetch_results():  
     if results is None:
         return jsonify({"error": "Nenhum resultado disponível. Execute o SVM primeiro."}), 400
 
-    # Retorna a acurácia e o caminho da imagem da matriz de confusão
     return jsonify({
         'accuracy': results['accuracy'],
-        'image_path': results['image_path']  # Envia o caminho da imagem
+        'image_url': f"{request.host_url}image"
     })
 
-# Rota para servir a imagem da matriz de confusão
-@app.route('/images/<path:filename>', methods=['GET'])
-def get_image(filename):
-    return send_from_directory('.', filename)
+# Get (imagem)
+@app.route('/image', methods=['GET'])
+def serve_image():
+    if results is None:
+        return jsonify({"error": "Nenhum resultado disponível. Execute o SVM primeiro."}), 400
 
-# Inicializa o servidor
+    return send_file(io.BytesIO(results['image_data']), mimetype='image/png')
+
+# Inicializa servidor
 if __name__ == '__main__':
     app.run(debug=True)

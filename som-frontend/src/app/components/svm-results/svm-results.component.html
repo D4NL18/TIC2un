@@ -5,7 +5,8 @@
     <div *ngIf="imageUrl" class="image-svm-result-box">
         <img [src]="imageUrl" alt="SVM Confusion Matrix" class="svm-result-image">
     </div>
+    
     <div *ngIf="accuracy !== undefined">
-        <p>Accuracy: {{ accuracy * 100}}% </p>
+        <p>Accuracy: {{ accuracy * 100 | number: '1.2-2'}}% </p>
     </div>
 </div>
