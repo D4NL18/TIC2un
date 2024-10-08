@@ -14,6 +14,7 @@ export class SomResultsComponent {
   @Output() trainRequested = new EventEmitter<void>();
 
   imageUrl: string | undefined;
+  accuracy: number | undefined;
   isLoading: boolean = false;
 
   constructor(private somService: SomService) { }
@@ -24,6 +25,7 @@ export class SomResultsComponent {
     this.somService.trainSom().subscribe({
       next: (response) => {
         console.log('Treinamento concluído', response);
+        this.accuracy = response.accuracy; 
         this.fetchImage();
       },
       error: (err) => {

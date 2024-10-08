@@ -1,10 +1,12 @@
 <div class="som-result-container">
-    <div *ngIf="!isLoading && !imageUrl" class="initial-som-result-box"></div>  
-    <div *ngIf="isLoading" class="loading-som-result-box">
-      <app-loading-spinner />
-    </div>
-    <div *ngIf="imageUrl" class="image-som-result-box">
-      <img [src]="imageUrl" alt="SOM Plot" class="som-result-image" />
-    </div>
+  <div *ngIf="!isLoading && !imageUrl" class="initial-som-result-box"></div>
+  <div *ngIf="isLoading" class="loading-som-result-box">
+    <app-loading-spinner />
   </div>
-  
+  <div *ngIf="imageUrl" class="image-som-result-box">
+    <img [src]="imageUrl" alt="SOM Plot" class="som-result-image" />
+  </div>
+  <div *ngIf="accuracy !== undefined">
+    <p>Accuracy: {{ accuracy * 100 | number: '1.2-2' }}%</p>
+  </div>
+</div>

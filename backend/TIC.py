@@ -6,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import os
 import tempfile
+from collections import Counter
 
 app = Flask(__name__)
 CORS(app)
@@ -31,6 +32,39 @@ def update_weights(som, sample, bmu_idx, iteration, max_iterations, learning_rat
                 influence = np.exp(-distance_to_bmu**2 / (2 * (radius_decay ** 2)))
                 som[i, j, :] += influence * learning_rate_decay * (sample - som[i, j, :])
 
+# Atribui rótulos aos neurônios com base nas amostras associadas
+def assign_labels_to_neurons(som, X_scaled, y):
+    som_labels = np.zeros((som.shape[0], som.shape[1]), dtype=int)
+    som_bmu_count = np.zeros((som.shape[0], som.shape[1]), dtype=int)
+
+    for i, sample in enumerate(X_scaled):
+        bmu_idx = find_bmu(som, sample)
+        som_labels[bmu_idx] += y[i]
+        som_bmu_count[bmu_idx] += 1
+
+    # Normalizar os rótulos pela maioria
+    for i in range(som.shape[0]):
+        for j in range(som.shape[1]):
+            if som_bmu_count[i, j] > 0:
+                neuron_label_counts = Counter([y[k] for k, sample in enumerate(X_scaled) if find_bmu(som, sample) == (i, j)])
+                som_labels[i, j] = neuron_label_counts.most_common(1)[0][0]  # Atribuir rótulo da classe majoritária
+
+    return som_labels
+
+# Calcula a acurácia do SOM
+def calculate_accuracy(som, X_scaled, y, som_labels):
+    correct = 0
+
+    for i, sample in enumerate(X_scaled):
+        bmu_idx = find_bmu(som, sample)
+        predicted_label = som_labels[bmu_idx]
+        true_label = y[i]
+        if predicted_label == true_label:
+            correct += 1
+
+    accuracy = correct / len(y)
+    return accuracy
+
 # Treinar SOM
 def train_som(X, som, max_iterations=1000, learning_rate=0.5, radius=3):
     for iteration in range(max_iterations):
@@ -53,6 +87,12 @@ def train_som_endpoint():
 
     # Treinar SOM
     train_som(X_scaled, som, max_iterations=500, learning_rate=0.5, radius=3)
+
+    # Atribuir rótulos aos neurônios
+    som_labels = assign_labels_to_neurons(som, X_scaled, y)
+
+    # Calcular acurácia
+    accuracy = calculate_accuracy(som, X_scaled, y, som_labels)
 
     # Plot
     plt.figure(figsize=(10, 10))
@@ -84,7 +124,7 @@ def train_som_endpoint():
         print(f"Erro ao salvar a imagem: {e}")
         return jsonify({"error": "Falha ao salvar a imagem."}), 500
 
-    return jsonify({"message": "SOM trained successfully", "image_path": image_path})
+    return jsonify({"message": "SOM trained successfully", "image_path": image_path, "accuracy": accuracy})
 
 @app.route('/get-image', methods=['GET'])
 def get_image():
