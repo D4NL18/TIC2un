@@ -13,7 +13,8 @@ import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.comp
 export class SomResultsComponent {
   @Output() trainRequested = new EventEmitter<void>();
 
-  imageUrl: string | undefined;
+  imageUrlManual: string | undefined;
+  imageUrlMinisom: string | undefined;
   accuracy: number | undefined;
   isLoading: boolean = false;
 
@@ -38,10 +39,19 @@ export class SomResultsComponent {
   }
 
   fetchImage() {
-    this.somService.getImage().subscribe({
+    this.somService.getImageManual().subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
-        this.imageUrl = url;
+        this.imageUrlManual = url;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar imagem:', err);
+      }
+    });
+    this.somService.getImageMinisom().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        this.imageUrlMinisom = url;
       },
       error: (err) => {
         console.error('Erro ao buscar imagem:', err);

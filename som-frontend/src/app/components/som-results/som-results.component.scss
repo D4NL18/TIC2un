@@ -4,8 +4,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 500px;
-    height: 500px;
+    width: 100%;
 
     .initial-som-result-box {
         border: dashed 1px black;
@@ -22,12 +21,17 @@
         height: 100%;
     }
 
+    .images-som-result-container {
+        display: flex;
+        justify-content: space-evenly;
+        width: 100%;
+    }
+
     .image-som-result-box {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 100%;
-        height: 100%;
+        width: 30%;
 
         .som-result-image {
             width: 100%;

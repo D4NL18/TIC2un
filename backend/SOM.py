@@ -105,38 +105,36 @@ def train_som(X_scaled, y, som, max_iterations=1000, learning_rate=0.5, radius=3
 
 # Treinar SOM usando MiniSom
 def train_minisom(X_scaled, y):
-    som_grid_size = 7
-    som = MiniSom(x=som_grid_size, y=som_grid_size, input_len=X_scaled.shape[1], sigma=1.0, learning_rate=0.5)
+    # Inicializa MiniSom
+    som = MiniSom(x=7, y=7, input_len=X_scaled.shape[1], sigma=1.0, learning_rate=0.5)
     som.random_weights_init(X_scaled)
-    som.train_random(X_scaled, num_iteration=5000)
+    som.train_random(X_scaled, num_iteration=500)
 
+    # Criação do gráfico MiniSom
+    temp_dir = tempfile.gettempdir()
+    minisom_image_path = os.path.join(temp_dir, 'minisom_som_plot.png')
+    
     plt.figure(figsize=(10, 10))
     colors = ['r', 'g', 'b']
     markers = ['o', 's', 'D']
-    winners_dict = {}
-
-    # Gerar imagem
+    
     for i, x in enumerate(X_scaled):
         winner = som.winner(x)
-        if winner in winners_dict:
-            winners_dict[winner].append(i)
-        else:
-            winners_dict[winner] = [i]
-
-    for winner, indices in winners_dict.items():
-        idx = np.random.choice(indices)
-        plt.plot(winner[0] + 0.5, winner[1] + 0.5, markers[y[idx]], markerfacecolor='None',
-                 markeredgecolor=colors[y[idx]], markersize=12, markeredgewidth=2, alpha=0.8)
-
-    plt.xticks(np.arange(som_grid_size + 1))
-    plt.yticks(np.arange(som_grid_size + 1))
+        plt.plot(winner[0] + 0.5, winner[1] + 0.5, markers[y[i]], markerfacecolor='None',
+                 markeredgecolor=colors[y[i]], markersize=12, markeredgewidth=2)
+    
+    plt.xticks(np.arange(8))
+    plt.yticks(np.arange(8))
     plt.grid()
-    plt.title("MiniSom - Iris")
-
-    # Salvar imagem
-    temp_dir = tempfile.gettempdir()
-    minisom_image_path = os.path.join(temp_dir, 'minisom_plot.png')
+    
+    # Adicionar legenda para cada classe de flor
+    for i, flower_type in enumerate(["Setosa", "Versicolor", "Virginica"]):
+        plt.plot([], [], color=colors[i], marker=markers[i], label=flower_type,
+                 linestyle='None', markerfacecolor='None', markeredgewidth=2)
+    
+    plt.legend()
     plt.savefig(minisom_image_path)
+    plt.close()
 
     return minisom_image_path
 

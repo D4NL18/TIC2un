@@ -14,7 +14,10 @@ export class SomService {
     return this.http.post(`${this.apiUrl}/train-som`, {});
   }
 
-  getImage(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-image`, { responseType: 'blob' });
+  getImageManual(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-image/manual`, { responseType: 'blob' });
+  }
+  getImageMinisom(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-image/minisom`, { responseType: 'blob' });
   }
 }
