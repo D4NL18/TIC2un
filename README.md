@@ -11,7 +11,7 @@ A ideia original da atividade é desenvolver códigos de algoritmos de classific
 
 De acordo com o problema apresentado acima, foram desenvolvidas 6 soluções em Python, referentes a cada algoritmo apresentado em sala. Como adicional, a equipe desenvolveu um ambiente de execução utilizando Flask, com o objetivo de enviar os resultados obtidos em cada código para um frontend, desenvolvido com o Framework Angular. O repositório contém tanto o frontend quanto o backend, separados em suas respectivas pastas dentro da root principal do projeto. Para visualizar cada algoritmo individualmente, acesse a pasta do backend e busque pelo algoritmo desejado seguindo o nome dos arquivos
 
-##Algoritmos
+## Algoritmos
 
 ### SVM
 
