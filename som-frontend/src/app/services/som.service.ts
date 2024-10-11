@@ -17,7 +17,12 @@ export class SomService {
   getImageManual(): Observable<any> {
     return this.http.get(`${this.apiUrl}/get-image/manual`, { responseType: 'blob' });
   }
+
   getImageMinisom(): Observable<any> {
     return this.http.get(`${this.apiUrl}/get-image/minisom`, { responseType: 'blob' });
+  }
+
+  getAccuracy(somType: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-accuracy/${somType}`);
   }
 }

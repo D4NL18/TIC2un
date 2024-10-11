@@ -15,7 +15,8 @@ export class SomResultsComponent {
 
   imageUrlManual: string | undefined;
   imageUrlMinisom: string | undefined;
-  accuracy: number | undefined;
+  accuracyManual: number | undefined;
+  accuracyMinisom: number | undefined;
   isLoading: boolean = false;
 
   constructor(private somService: SomService) { }
@@ -26,8 +27,8 @@ export class SomResultsComponent {
     this.somService.trainSom().subscribe({
       next: (response) => {
         console.log('Treinamento concluído', response);
-        this.accuracy = response.accuracy; 
         this.fetchImage();
+        this.fetchAccuracy();
       },
       error: (err) => {
         console.error('Erro ao treinar SOM:', err);
@@ -55,6 +56,26 @@ export class SomResultsComponent {
       },
       error: (err) => {
         console.error('Erro ao buscar imagem:', err);
+      }
+    });
+  }
+
+  fetchAccuracy() {
+    this.somService.getAccuracy('manual').subscribe({
+      next: (response) => {
+        this.accuracyManual = response.accuracy;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar precisão do SOM manual:', err);
+      }
+    });
+
+    this.somService.getAccuracy('minisom').subscribe({
+      next: (response) => {
+        this.accuracyMinisom = response.accuracy;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar precisão do MiniSom:', err);
       }
     });
   }

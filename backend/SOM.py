@@ -12,7 +12,6 @@ from minisom import MiniSom
 app = Flask(__name__)
 CORS(app)
 
-
 # Calcula distância euclidiana
 def euclidean_distance(x, y):
     return np.sqrt(np.sum((x - y) ** 2))
@@ -73,10 +72,8 @@ def train_som(X_scaled, y, som, max_iterations=1000, learning_rate=0.5, radius=3
             update_weights(som, sample, bmu_idx, iteration, max_iterations, learning_rate, radius)
 
     som_labels = assign_labels_to_neurons(som, X_scaled, y)
-
     accuracy = calculate_accuracy(som, X_scaled, y, som_labels)
 
-    # Plot do SOM manual
     plt.figure(figsize=(10, 10))
     colors = ['r', 'g', 'b']
     markers = ['o', 's', 'D']
@@ -100,44 +97,57 @@ def train_som(X_scaled, y, som, max_iterations=1000, learning_rate=0.5, radius=3
     temp_dir = tempfile.gettempdir()
     manual_som_image_path = os.path.join(temp_dir, 'manual_som_plot.png')
     plt.savefig(manual_som_image_path)
+    plt.close()
 
     return accuracy, manual_som_image_path
 
 # Treinar SOM usando MiniSom
 def train_minisom(X_scaled, y):
-    # Inicializa MiniSom
-    som = MiniSom(x=7, y=7, input_len=X_scaled.shape[1], sigma=1.0, learning_rate=0.5)
-    som.random_weights_init(X_scaled)
-    som.train_random(X_scaled, num_iteration=500)
+    try:
+        # Inicializa MiniSom
+        som = MiniSom(x=7, y=7, input_len=X_scaled.shape[1], sigma=1.0, learning_rate=0.5)
+        som.random_weights_init(X_scaled)
+        som.train_random(X_scaled, num_iteration=500)
 
-    # Criação do gráfico MiniSom
-    temp_dir = tempfile.gettempdir()
-    minisom_image_path = os.path.join(temp_dir, 'minisom_som_plot.png')
-    
-    plt.figure(figsize=(10, 10))
-    colors = ['r', 'g', 'b']
-    markers = ['o', 's', 'D']
-    
-    for i, x in enumerate(X_scaled):
-        winner = som.winner(x)
-        plt.plot(winner[0] + 0.5, winner[1] + 0.5, markers[y[i]], markerfacecolor='None',
-                 markeredgecolor=colors[y[i]], markersize=12, markeredgewidth=2)
-    
-    plt.xticks(np.arange(8))
-    plt.yticks(np.arange(8))
-    plt.grid()
-    
-    # Adicionar legenda para cada classe de flor
-    for i, flower_type in enumerate(["Setosa", "Versicolor", "Virginica"]):
-        plt.plot([], [], color=colors[i], marker=markers[i], label=flower_type,
-                 linestyle='None', markerfacecolor='None', markeredgewidth=2)
-    
-    plt.legend()
-    plt.savefig(minisom_image_path)
-    plt.close()
+        # Criação do gráfico MiniSom
+        temp_dir = tempfile.gettempdir()
+        minisom_image_path = os.path.join(temp_dir, 'minisom_som_plot.png')
+        
+        plt.figure(figsize=(10, 10))
+        colors = ['r', 'g', 'b']
+        markers = ['o', 's', 'D']
+        
+        for i, x in enumerate(X_scaled):
+            winner = som.winner(x)
+            plt.plot(winner[0] + 0.5, winner[1] + 0.5, markers[y[i]], markerfacecolor='None',
+                     markeredgecolor=colors[y[i]], markersize=12, markeredgewidth=2)
+        
+        plt.xticks(np.arange(8))
+        plt.yticks(np.arange(8))
+        plt.grid()
+        
+        # Adiciona legenda para cada classe de flor
+        for i, flower_type in enumerate(["Setosa", "Versicolor", "Virginica"]):
+            plt.plot([], [], color=colors[i], marker=markers[i], label=flower_type,
+                     linestyle='None', markerfacecolor='None', markeredgewidth=2)
+        
+        plt.legend()
+        plt.savefig(minisom_image_path)
+        plt.close()
 
-    return minisom_image_path
+        # Calcula a precisão do MiniSom
+        som_labels = assign_labels_to_neurons(som.get_weights(), X_scaled, y)
+        accuracy_minisom = calculate_accuracy(som.get_weights(), X_scaled, y, som_labels)
 
+        return minisom_image_path, accuracy_minisom
+    except Exception as e:
+        print(f"Error in training MiniSom: {e}")
+        return None, None
+
+# Armazena a precisão dos SOMs
+accuracy_store = {}
+
+#Post para realizar treinamentos
 @app.route('/train-som', methods=['POST'])
 def train_som_endpoint():
     # Carregar dataset e normalização dos dados
@@ -153,17 +163,25 @@ def train_som_endpoint():
 
     # Treinar SOM manual
     accuracy_manual_som, manual_som_image_path = train_som(X_scaled, y, som, max_iterations=500, learning_rate=0.5, radius=3)
+    
+    # Armazenar a precisão do SOM manual
+    accuracy_store['manual'] = accuracy_manual_som
 
-    # Treinar MiniSom
-    minisom_image_path = train_minisom(X_scaled, y)
+    # Treinar MiniSom e obter a imagem e a precisão
+    minisom_image_path, accuracy_minisom = train_minisom(X_scaled, y)
+
+    # Armazenar a precisão do MiniSom
+    accuracy_store['minisom'] = accuracy_minisom
 
     return jsonify({
         "message": "SOMs trained successfully",
         "manual_som_image_path": manual_som_image_path,
         "minisom_image_path": minisom_image_path,
-        "accuracy_manual_som": accuracy_manual_som
+        "accuracy_manual_som": accuracy_manual_som,
+        "accuracy_minisom": accuracy_minisom
     })
 
+# Get para imagem
 @app.route('/get-image/<som_type>', methods=['GET'])
 def get_image(som_type):
     temp_dir = tempfile.gettempdir()
@@ -173,6 +191,14 @@ def get_image(som_type):
         return send_file(image_path, mimetype='image/png')
     
     return jsonify({"error": f"Image for {som_type} SOM not found"}), 404
+
+#Get para accuracy
+@app.route('/get-accuracy/<som_type>', methods=['GET'])
+def get_accuracy(som_type):
+    accuracy = accuracy_store.get(som_type)
+    if accuracy is not None:
+        return jsonify({"accuracy": accuracy})
+    return jsonify({"error": f"Accuracy for {som_type} SOM not found"}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
