@@ -4,11 +4,11 @@ import { SvmComponent } from './views/svm/svm.component';
 
 export const routes: Routes = [
     {
-        path: "",
+        path: "som",
         component: SomComponent
     },
     {
-        path: "svm",
+        path: "",
         component: SvmComponent
     },
 ];
