@@ -33,9 +33,13 @@
         align-items: center;
         width: 30%;
 
+        h3 {
+            font-size: 1.5rem;
+            margin: 0
+        }
+
         .som-result-image {
-            width: 100%;
-            height: 100%;
+            width: 80%;
         }
     }
 }

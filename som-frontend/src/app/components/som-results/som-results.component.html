@@ -6,16 +6,18 @@
 
   <div class="images-som-result-container">
     <div *ngIf="imageUrlManual" class="image-som-result-box">
+      <h3>Resultado Manual</h3>
       <img [src]="imageUrlManual" alt="SOM Plot" class="som-result-image" />
-      <div *ngIf="accuracy !== undefined">
-        <p>Accuracy: {{ accuracy * 100 | number: '1.2-2' }}%</p>
+      <div *ngIf="accuracyManual !== undefined">
+        <p>Accuracy: {{ accuracyManual * 100 | number: '1.2-2' }}%</p>
       </div>
     </div>
 
     <div *ngIf="imageUrlMinisom" class="image-som-result-box">
+      <h3>Resultado Minisom</h3>
       <img [src]="imageUrlMinisom" alt="SOM Plot" class="som-result-image" />
-      <div *ngIf="accuracy !== undefined">
-        <p>Accuracy: {{ accuracy * 100 | number: '1.2-2' }}%</p>
+      <div *ngIf="accuracyMinisom !== undefined">
+        <p>Accuracy: {{ accuracyMinisom * 100 | number: '1.2-2' }}%</p>
       </div>
     </div>
     
