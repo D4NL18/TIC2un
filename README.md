@@ -17,6 +17,8 @@ De acordo com o problema apresentado acima, foram desenvolvidas 6 soluções em 
 
 O primeiro algoritmo solicitado foi o SVM (Máquinas de Vetores-Suporte). A classificação ocorreu na base de dados Iris, da biblioteca Sklearn, e aplicou a função SVC da mesma biblioteca para realizar a classificação, após o tratamento adequado dos dados. O algoritmo completo será executado dentro de um Post, que receberá o comando do frontend para execução. Os resultados serão enviados para o frontend através de duas requisições Get, sendo uma para a imagem da matriz confusão e outra para os resultados de precisão do algoritmo.
 
+![Demo](backend/results/svm.gif)
+
 ### Deep Learn
 
 TBD
