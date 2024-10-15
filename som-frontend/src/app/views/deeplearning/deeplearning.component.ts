@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { DeeplearningResultsComponent } from '../../components/deeplearning-results/deeplearning-results.component';
 import { ButtonComponent } from '../../components/button/button.component';
 import { NavComponent } from '../../components/nav/nav.component';
@@ -11,7 +11,10 @@ import { NavComponent } from '../../components/nav/nav.component';
   styleUrl: './deeplearning.component.scss'
 })
 export class DeeplearningComponent {
+  @ViewChild(DeeplearningResultsComponent) dlResultsComponent!: DeeplearningResultsComponent;
   onTrainDeepLearning() {
-
+    if(this.dlResultsComponent) {
+      this.dlResultsComponent.trainDeepLearning()
+    }
   }
 }
