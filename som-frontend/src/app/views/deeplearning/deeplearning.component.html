@@ -1,0 +1,20 @@
+<header>
+    <app-nav />
+</header>
+<main class="som-page-main">
+    <section class="som-page-container">
+        <div class="som-page-title-container">
+            <h1>
+                Bem vindo à Classificação SOM
+            </h1>
+        </div>
+        <div class="som-page-img-box">
+            <app-deeplearning-results></app-deeplearning-results>
+        </div>
+        <div class="som-button-box">
+            <app-button (click)="onTrainDeepLearning()">Clique aqui para realizar SOM</app-button>
+            <p>Obs: Pode demorar um pouco</p>
+        </div>
+    </section>
+</main>
+
