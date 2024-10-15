@@ -12,11 +12,11 @@ export class DeeplearningService {
   constructor(private http: HttpClient) { }
 
   trainDeepLearning(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/confusion-matrix/pt`, {});
+    return this.http.post(`${this.apiUrl}/train`, {});
   }
 
   getImage(type: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/confusion-matrix/${type}`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/confusion-matrix/${type}/image`, { responseType: 'blob' });
   }
 
   getAccuracy(type: string): Observable<any> {

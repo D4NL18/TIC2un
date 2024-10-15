@@ -1,0 +1,45 @@
+.dl-result-container {
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+
+    .initial-dl-result-box {
+        border: dashed 1px black;
+        width: 100%;
+        height: 100%;
+        box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .loading-dl-result-box {  
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .images-dl-result-container {
+        display: flex;
+        justify-content: space-evenly;
+        width: 100%;
+    }
+
+    .image-dl-result-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 30%;
+
+        h3 {
+            font-size: 1.5rem;
+            margin: 0
+        }
+
+        .dl-result-image {
+            width: 80%;
+        }
+    }
+}

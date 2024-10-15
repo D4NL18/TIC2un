@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS, cross_origin
 import numpy as np
-import pandas as pd
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import confusion_matrix
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
@@ -12,9 +12,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from sklearn.metrics import confusion_matrix
+import tempfile
+import os
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
+
+# Aplicando CORS globalmente
 CORS(app)
 
 # Carregando o dataset Iris
@@ -112,6 +116,22 @@ def train_pt(X_train, y_train, X_test, y_test):
         accuracy_pt = (predicted == y_test_tensor).float().mean().item()
         confusion_matrix_pt = confusion_matrix(y_test, predicted.numpy())
 
+# Função para criar a imagem da matriz de confusão
+def create_confusion_matrix_image(conf_matrix):
+    plt.figure(figsize=(6, 6))
+    plt.imshow(conf_matrix, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title('Matriz de Confusão')
+    plt.colorbar()
+    plt.ylabel('Classe Real')
+    plt.xlabel('Classe Prevista')
+    
+    # Salvar a imagem em um arquivo temporário
+    temp_dir = tempfile.gettempdir()
+    image_path = os.path.join(temp_dir, 'confusion_matrix.png')
+    plt.savefig(image_path)
+    plt.close()
+    return image_path
+
 # Endpoint para iniciar os treinamentos
 @app.route('/train', methods=['POST'])
 def train():
@@ -131,19 +151,25 @@ def train():
 
     return jsonify({"message": "Training completed"}), 200
 
-# Endpoint para obter a matriz de confusão do TensorFlow
-@app.route('/confusion-matrix/tf', methods=['GET'])
-def get_confusion_matrix_tf():
-    if confusion_matrix_tf is None:
-        return jsonify({"error": "Model not trained yet"}), 400
-    return jsonify(confusion_matrix_tf.tolist()), 200
-
-# Endpoint para obter a matriz de confusão do PyTorch
-@app.route('/confusion-matrix/pt', methods=['GET'])
-def get_confusion_matrix_pt():
+# Endpoint para obter a matriz de confusão do PyTorch como imagem
+@app.route('/confusion-matrix/pt/image', methods=['GET'])
+@cross_origin()  # Aplicando CORS especificamente a este endpoint
+def get_confusion_matrix_image():
     if confusion_matrix_pt is None:
         return jsonify({"error": "Model not trained yet"}), 400
-    return jsonify(confusion_matrix_pt.tolist()), 200
+    
+    image_path = create_confusion_matrix_image(confusion_matrix_pt)
+    return send_file(image_path, mimetype='image/png')
+
+# Endpoint para obter a matriz de confusão do TensorFlow como imagem
+@app.route('/confusion-matrix/tf/image', methods=['GET'])
+@cross_origin()  # Aplicando CORS especificamente a este endpoint
+def get_confusion_matrix_tf_image():
+    if confusion_matrix_tf is None:
+        return jsonify({"error": "Model not trained yet"}), 400
+    
+    image_path = create_confusion_matrix_image(confusion_matrix_tf)
+    return send_file(image_path, mimetype='image/png')
 
 # Endpoint para obter a precisão do TensorFlow
 @app.route('/accuracy/tf', methods=['GET'])

@@ -1,24 +1,24 @@
-<div class="som-result-container">
-    <div class="initial-som-result-box"></div>
-    <div *ngIf="isLoading == true" class="loading-som-result-box">
+<div class="dl-result-container">
+    <div *ngIf="!isLoading && !imageUrlPT && !imageUrlTF" class="initial-dl-result-box"></div>
+    <div *ngIf="isLoading == true" class="loading-dl-result-box">
         <app-loading-spinner />
     </div>
 
-    <div class="images-som-result-container">
-        <div class="image-som-result-box">
-            <h3>Resultado Manual</h3>
-            <img alt="SOM Plot" class="som-result-image" />
-            <div>
-                <p>Accuracy: %</p>
-            </div>
+    <div class="images-dl-result-container">
+        <div *ngIf="imageUrlPT" class="image-dl-result-box">
+          <h3>Resultado PyTorch</h3>
+          <img [src]="imageUrlPT" alt="PyTorch Plot" class="dl-result-image" />
+          <div *ngIf="accuracyPT !== undefined">
+            <p>Accuracy: {{ accuracyPT * 100 | number: '1.2-2' }}%</p>
+          </div>
         </div>
-
-        <div class="image-som-result-box">
-            <h3>Resultado Minisom</h3>
-            <img alt="SOM Plot" class="som-result-image" />
-            <div>
-                <p>Accuracy: %</p>
-            </div>
+    
+        <div *ngIf="imageUrlTF" class="image-dl-result-box">
+          <h3>Resultado TensorFlow</h3>
+          <img [src]="imageUrlTF" alt="TensorFlow Plot" class="dl-result-image" />
+          <div *ngIf="accuracyTF !== undefined">
+            <p>Accuracy: {{ accuracyTF * 100 | number: '1.2-2' }}%</p>
+          </div>
         </div>
 
     </div>
