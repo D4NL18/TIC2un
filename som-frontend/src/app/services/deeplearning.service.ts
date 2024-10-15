@@ -15,18 +15,11 @@ export class DeeplearningService {
     return this.http.post(`${this.apiUrl}/confusion-matrix/pt`, {});
   }
 
-  getImagePT(type: string): Observable<any> {
+  getImage(type: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/confusion-matrix/${type}`, { responseType: 'blob' });
   }
 
-  getImageTF(type: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/confusion-matrix/${type}`, { responseType: 'blob' });
-  }
-
-  getAccuracyPT(type: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/accuracy/${type}`);
-  }
-  getAccuracyTF(type: string): Observable<any> {
+  getAccuracy(type: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/accuracy/${type}`);
   }
 }

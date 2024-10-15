@@ -1,6 +1,6 @@
 <div class="som-result-container">
     <div class="initial-som-result-box"></div>
-    <div class="loading-som-result-box">
+    <div *ngIf="isLoading == true" class="loading-som-result-box">
         <app-loading-spinner />
     </div>
 
