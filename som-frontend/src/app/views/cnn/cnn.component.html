@@ -1,0 +1,20 @@
+<header>
+    <app-nav />
+</header>
+<main class="cnn-page-main">
+    <section class="cnn-page-container">
+        <div class="cnn-page-title-container">
+            <h1>
+                Bem vindo à Classificação CNN
+            </h1>
+        </div>
+        <div class="cnn-page-img-box">
+            <app-cnn-results></app-cnn-results>
+        </div>
+        <div class="cnn-button-box">
+            <app-button (click)="onTrainCNN()">Clique aqui para realizar CNN</app-button>
+            <p>Obs: Pode demorar um pouco</p>
+        </div>
+    </section>
+</main>
+

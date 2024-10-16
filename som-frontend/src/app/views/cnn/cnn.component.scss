@@ -1,0 +1,44 @@
+.cnn-page-main {
+    display: flex;
+    width: 100vw;
+    height: 90vh;
+
+    .cnn-page-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+
+        .cnn-page-title-container {
+            font-size: 1.75rem;
+            
+
+            h1 {
+                font-weight: bold;
+            }
+        }
+
+        .cnn-page-img-box {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+
+            .img {
+                width: 100%;
+                height: 100%;
+                background-color: blue;
+            }
+        }
+        .cnn-button-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            font-size: 1rem;
+        }
+    }
+    
+}

@@ -1,0 +1,20 @@
+<div class="cnn-result-container">
+    <div *ngIf="!isLoading && !imageUrl && !imageUrl" class="initial-cnn-result-box"></div>
+    <div *ngIf="isLoading == true" class="loading-dl-result-box">
+        <app-loading-spinner />
+    </div>
+
+    <div class="images-cnn-result-container">
+        <div *ngIf="imageUrl" class="image-cnn-result-box">
+            <h3>Resultado CNN</h3>
+            <img [src]="imageUrl" alt="PyTorch Plot" class="cnn-result-image" />
+            <div *ngIf="accuracy !== undefined">
+                <p>Accuracy: {{ accuracy * 100 | number: '1.2-2' }}%</p>
+            </div>
+            <div *ngIf="f1_score !== undefined">
+                <p>F1 Score: {{ f1_score * 100 | number: '1.2-2' }}%</p>
+            </div>
+        </div>
+    </div>
+
+</div>
