@@ -19,9 +19,11 @@ O primeiro algoritmo solicitado foi o SVM (Máquinas de Vetores-Suporte). A clas
 
 ![Demo](backend/results/svm.gif)
 
-### Deep Learn
+### Deep Learning
 
-TBD
+O segundo método apresentado foi o Deep Learning, no qual foram solicitadas 2 aplicações diferentes, sendo uma delas através da biblioteca PyTorch e outra utilizando TensorFlow. A partir disso, foi realizado o treinamento de ambos os algoritmos para a classificação da biblioteca Iris, e apresentado na tela do sistema a matriz confusão e a accuracy de ambos, a fins comparativos.
+
+![Demo](backend/results/DL.gif)
 
 ### Redes Convolucionais
 
