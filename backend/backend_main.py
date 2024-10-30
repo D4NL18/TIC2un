@@ -10,8 +10,8 @@ from collections import Counter
 from minisom import MiniSom
 
 app = Flask(__name__)
-CORS(app)
 
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ====================================================== SOM ===========================================================
 
@@ -179,7 +179,7 @@ def run_svm():
     global results
 
     # Passo 2: Escolher a Base de Dados
-    iris = datasets.load_iris()
+    iris = load_iris()
 
     # Passo 3: Carregar os Dados
     X = iris.data
@@ -403,10 +403,6 @@ from tensorflow import keras
 from keras import datasets, models, layers, applications, utils
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import matplotlib.pyplot as plt
-
-app = Flask(__name__)
-
-CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Diretórios
 model_dir = 'backend/CNN/models'
