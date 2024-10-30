@@ -6,23 +6,19 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class SomService {
-  private apiUrl = 'http://localhost:5000';
+  private apiUrl = 'http://localhost:5000/som';
 
   constructor(private http: HttpClient) { }
 
   trainSom(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/som/train`, {});
+    return this.http.post(`${this.apiUrl}/train`, {});
   }
 
   getImage(somType: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/som/get-image/${somType}`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/get-image/${somType}`, { responseType: 'blob' });
   }
 
-  // getImage(): Observable<any> {
-  //   return this.http.get(`${this.apiUrl}/som/get-image/minisom`, { responseType: 'blob' });
-  // }
-
   getAccuracy(somType: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/som/get-accuracy/${somType}`);
+    return this.http.get(`${this.apiUrl}/get-accuracy/${somType}`);
   }
 }

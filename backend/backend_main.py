@@ -150,7 +150,8 @@ def train_minisom(X_scaled, y):
 # Armazena a precisão dos SOMs
 accuracy_store = {}
 
-# ====================================================== SVM SOM ===========================================================
+
+# ====================================================== SVM ===========================================================
 
 # Passo 1: Imports
 from flask import Flask, jsonify, send_file, request
@@ -169,8 +170,6 @@ import os
 # Passo 7: Importar o Modelo SVM
 from sklearn.svm import SVC
 
-app = Flask(__name__)
-CORS(app)
 
 results = None
 
@@ -255,6 +254,188 @@ def run_svm():
     }
 
 
+
+# ====================================================== DL ===========================================================
+
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS, cross_origin
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import confusion_matrix
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+import tempfile
+import os
+import matplotlib.pyplot as plt
+import threading
+
+iris = load_iris()
+X = iris.data 
+y = iris.target
+
+confusion_matrix_tf = None
+confusion_matrix_pt = None
+accuracy_tf = None
+accuracy_pt = None
+
+# Preparação dos dados
+def prepare_data(X, y):
+    encoder = LabelEncoder()
+    y = encoder.fit_transform(y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+    return X_train, X_test, y_train, y_test
+
+# Train TensorFlow
+def train_tf(X_train, y_train, X_test, y_test):
+    global confusion_matrix_tf, accuracy_tf
+    
+    # Definir modelo
+    model = keras.Sequential([
+        layers.Dense(10, activation='relu', input_shape=(X_train.shape[1],)),
+        layers.Dense(10, activation='relu'),
+        layers.Dense(3, activation='softmax')
+    ])
+
+    model.compile(optimizer='adam', 
+                  loss='sparse_categorical_crossentropy', 
+                  metrics=['accuracy'])
+
+    model.fit(X_train, y_train, epochs=100, batch_size=5, validation_split=0.2)
+
+    # Avaliação
+    test_loss, test_accuracy = model.evaluate(X_test, y_test)
+    accuracy_tf = test_accuracy
+
+    # Previsões e matriz de confusão
+    y_pred = model.predict(X_test)
+    y_pred_classes = np.argmax(y_pred, axis=1)
+    confusion_matrix_tf = confusion_matrix(y_test, y_pred_classes)
+
+# Treinamento PyTorch
+def train_pt(X_train, y_train, X_test, y_test):
+    global confusion_matrix_pt, accuracy_pt
+
+    # Convertendo para tensores
+    X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+    y_train_tensor = torch.tensor(y_train, dtype=torch.long)
+    X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+    y_test_tensor = torch.tensor(y_test, dtype=torch.long)
+
+    train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
+    train_loader = DataLoader(train_dataset, batch_size=5, shuffle=True)
+
+    class IrisModel(nn.Module):
+        def __init__(self):
+            super(IrisModel, self).__init__()
+            self.fc1 = nn.Linear(X_train.shape[1], 10)
+            self.fc2 = nn.Linear(10, 10)
+            self.fc3 = nn.Linear(10, 3)
+
+        def forward(self, x):
+            x = torch.relu(self.fc1(x))
+            x = torch.relu(self.fc2(x))
+            x = self.fc3(x)
+            return x
+
+    model = IrisModel()
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters())
+
+    # Treinamento
+    for epoch in range(100):
+        model.train()
+        for inputs, labels in train_loader:
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+    # Avaliação
+    model.eval()
+    with torch.no_grad():
+        test_outputs = model(X_test_tensor)
+        _, predicted = torch.max(test_outputs, 1)
+        accuracy_pt = (predicted == y_test_tensor).float().mean().item()
+        confusion_matrix_pt = confusion_matrix(y_test, predicted.numpy())
+
+# Plot matriz confusão
+def create_confusion_matrix_image(conf_matrix):
+    plt.figure(figsize=(6, 6))
+    plt.imshow(conf_matrix, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title('Matriz de Confusão')
+    plt.colorbar()
+    plt.ylabel('Classe Real')
+    plt.xlabel('Classe Prevista')
+
+    thresh = conf_matrix.max() / 2.
+    for i, j in np.ndindex(conf_matrix.shape):
+        plt.text(j, i, format(conf_matrix[i, j], 'd'), 
+                 ha='center', va='center',
+                 color='white' if conf_matrix[i, j] > thresh else 'black')
+
+    # Salvar a imagem em um arquivo temporário
+    temp_dir = tempfile.gettempdir()
+    image_path = os.path.join(temp_dir, 'confusion_matrix.png')
+    plt.savefig(image_path)
+    plt.close()
+    return image_path
+
+
+# ====================================================== CNN ===========================================================
+
+import os
+import numpy as np
+import tensorflow as tf
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+from tensorflow import keras
+from keras import datasets, models, layers, applications, utils
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
+import matplotlib.pyplot as plt
+
+app = Flask(__name__)
+
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Diretórios
+model_dir = 'backend/CNN/models'
+image_dir = 'CNN/images'
+os.makedirs(image_dir, exist_ok=True)
+
+# Carregar modelo já treinado no CNN_treino.py
+def load_model():
+    base_model = applications.VGG16(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
+    for layer in base_model.layers:
+        layer.trainable = False
+
+    model = models.Sequential([
+        base_model,
+        layers.Flatten(),
+        layers.Dense(256, activation='relu'),
+        layers.Dropout(0.5),
+        layers.Dense(10, activation='softmax')
+    ])
+
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model_path = os.path.join(model_dir, 'melhor_modelo_cnn_pesos.weights.h5')
+    model.load_weights(model_path)
+    return model
+
+
+
+
+
 # ====================================================== HTTP SOM ===========================================================
 
 #Post para realizar treinamentos
@@ -310,6 +491,143 @@ def get_accuracy(som_type):
         return jsonify({"accuracy": accuracy})
     return jsonify({"error": f"Accuracy for {som_type} SOM not found"}), 404
 
+
+# ====================================================== HTTP SVM ===========================================================
+
+# Post (executar SVM)
+@app.route('/svm/run', methods=['POST'])
+def run_svm_endpoint():
+    run_svm()
+    return jsonify({"message": "Modelo SVM executado com sucesso!"})
+
+# Get (resultados)
+@app.route('/svm/results', methods=['GET'])
+def fetch_results():  
+    if results is None:
+        return jsonify({"error": "Nenhum resultado disponível. Execute o SVM primeiro."}), 400
+
+    return jsonify({
+        'accuracy': results['accuracy'],
+        'image_url': f"{request.host_url}image"
+    })
+
+# Get (imagem)
+@app.route('/svm/image', methods=['GET'])
+def serve_image():
+    if results is None:
+        return jsonify({"error": "Nenhum resultado disponível. Execute o SVM primeiro."}), 400
+
+    return send_file(io.BytesIO(results['image_data']), mimetype='image/png')
+
+
+# ====================================================== HTTP DL ===========================================================
+
+# Post Treinamentos
+@app.route('/dl/train', methods=['POST'])
+def train():
+    global confusion_matrix_tf, confusion_matrix_pt, accuracy_tf, accuracy_pt
+    X_train, X_test, y_train, y_test = prepare_data(X, y)
+
+    # Treinamento usando threads
+    tf_thread = threading.Thread(target=train_tf, args=(X_train, y_train, X_test, y_test))
+    pt_thread = threading.Thread(target=train_pt, args=(X_train, y_train, X_test, y_test))
+    
+    tf_thread.start()
+    pt_thread.start()
+    
+    tf_thread.join()
+    pt_thread.join()
+
+    return jsonify({"message": "Training completed"}), 200
+
+# Get imagem PyTorch
+@app.route('/dl/image/pt', methods=['GET'])
+@cross_origin()  # Aplicando CORS especificamente a este endpoint
+def get_confusion_matrix_image():
+    if confusion_matrix_pt is None:
+        return jsonify({"error": "Model not trained yet"}), 400
+    
+    image_path = create_confusion_matrix_image(confusion_matrix_pt)
+    return send_file(image_path, mimetype='image/png')
+
+# Get imagem TensorFlow
+@app.route('/dl/image/tf', methods=['GET'])
+@cross_origin()  # Aplicando CORS especificamente a este endpoint
+def get_confusion_matrix_tf_image():
+    if confusion_matrix_tf is None:
+        return jsonify({"error": "Model not trained yet"}), 400
+    
+    image_path = create_confusion_matrix_image(confusion_matrix_tf)
+    return send_file(image_path, mimetype='image/png')
+
+# Get accuracy TensorFlow
+@app.route('/dl/accuracy/tf', methods=['GET'])
+def get_accuracy_tf():
+    if accuracy_tf is None:
+        return jsonify({"error": "Model not trained yet"}), 400
+    return jsonify({"accuracy": accuracy_tf}), 200
+
+# Get imagem PyTorch
+@app.route('/dl/accuracy/pt', methods=['GET'])
+def get_accuracy_pt():
+    if accuracy_pt is None:
+        return jsonify({"error": "Model not trained yet"}), 400
+    return jsonify({"accuracy": accuracy_pt}), 200
+
+
+# ====================================================== HTTP CNN ===========================================================
+
+
+# Post (executar predição)
+@app.route('/cnn/predict', methods=['POST'])
+def predict():
+    global global_accuracy, global_f1_score
+
+    (_, _), (X_test, y_test) = datasets.cifar10.load_data()
+    X_test = X_test.astype('float32') / 255.0
+    y_true = y_test.reshape(-1)
+
+    model = load_model()
+    y_pred = model.predict(X_test)
+    y_pred_classes = np.argmax(y_pred, axis=1)
+
+    global_accuracy = accuracy_score(y_true, y_pred_classes)
+    global_f1_score = f1_score(y_true, y_pred_classes, average='weighted')
+
+    #Matriz Confusão
+    conf_matrix = confusion_matrix(y_true, y_pred_classes)
+    plt.figure(figsize=(10, 7))
+    plt.imshow(conf_matrix, cmap='Blues')
+    plt.title('Matriz de Confusão - CIFAR-10')
+    plt.colorbar()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    thresh = conf_matrix.max() / 2.
+    for i in range(conf_matrix.shape[0]):
+        for j in range(conf_matrix.shape[1]):
+            plt.text(j, i, format(conf_matrix[i, j], 'd'),
+                     ha='center', va='center',
+                     color='white' if conf_matrix[i, j] > thresh else 'black')
+
+    image_path = os.path.join(image_dir, 'confusion_matrix.png')
+    plt.savefig(image_path)
+    plt.close()
+
+    return jsonify({"message": "Predição realizada", "accuracy": global_accuracy, "f1_score": global_f1_score})
+
+# Get matriz confusão
+@app.route('/cnn/image', methods=['GET'])
+def get_confusion_matrix():
+    image_path = os.path.join(image_dir, 'confusion_matrix.png')
+    return send_file(image_path, mimetype='image/png')
+
+# Get métricas
+@app.route('/cnn/accuracy', methods=['GET'])
+def get_metrics():
+    return jsonify({"accuracy": global_accuracy, "f1_score": global_f1_score})
+
+
+# ====================================================== RUN APP ===========================================================
 
 
 if __name__ == '__main__':

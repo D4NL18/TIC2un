@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class DeeplearningService {
 
-  private apiUrl = 'http://localhost:5000';
+  private apiUrl = 'http://localhost:5000/dl';
 
   constructor(private http: HttpClient) { }
 
@@ -16,7 +16,7 @@ export class DeeplearningService {
   }
 
   getImage(type: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/confusion-matrix/${type}/image`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/image/${type}`, { responseType: 'blob' });
   }
 
   getAccuracy(type: string): Observable<any> {

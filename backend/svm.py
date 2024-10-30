@@ -101,13 +101,13 @@ def run_svm():
     }
 
 # Post (executar SVM)
-@app.route('/run_svm', methods=['POST'])
+@app.route('/svm/run', methods=['POST'])
 def run_svm_endpoint():
     run_svm()
     return jsonify({"message": "Modelo SVM executado com sucesso!"})
 
 # Get (resultados)
-@app.route('/results', methods=['GET'])
+@app.route('/svm/results', methods=['GET'])
 def fetch_results():  
     if results is None:
         return jsonify({"error": "Nenhum resultado disponível. Execute o SVM primeiro."}), 400
@@ -118,7 +118,7 @@ def fetch_results():
     })
 
 # Get (imagem)
-@app.route('/image', methods=['GET'])
+@app.route('/svm/image', methods=['GET'])
 def serve_image():
     if results is None:
         return jsonify({"error": "Nenhum resultado disponível. Execute o SVM primeiro."}), 400

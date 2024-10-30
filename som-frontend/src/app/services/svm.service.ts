@@ -7,15 +7,19 @@ import { Observable } from 'rxjs';
 })
 export class SvmService {
 
-  private apiUrl = 'http://localhost:5000';
+  private apiUrl = 'http://localhost:5000/svm';
 
   constructor(private http: HttpClient) { }
 
   runSVM(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/run_svm`, {});
+    return this.http.post(`${this.apiUrl}/run`, {});
   }
 
   getResults(): Observable<any> {
     return this.http.get(`${this.apiUrl}/results`);
+  }
+
+  getImage(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/image`, { responseType: 'blob' });
   }
 }

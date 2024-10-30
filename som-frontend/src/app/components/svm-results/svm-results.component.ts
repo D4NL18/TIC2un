@@ -41,7 +41,14 @@ export class SvmResultsComponent {
     this.svmService.getResults().subscribe({
       next: (response) => {
         this.accuracy = response.accuracy;
-        this.imageUrl = response.image_url;
+      },
+      error: (err) => {
+        console.log('Erro ao encontrar resultados', err);
+      }
+    });
+    this.svmService.getImage().subscribe({
+      next: (blob) => {
+        this.imageUrl = URL.createObjectURL(blob);
       },
       error: (err) => {
         console.log('Erro ao encontrar resultados', err);
