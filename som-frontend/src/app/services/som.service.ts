@@ -11,18 +11,18 @@ export class SomService {
   constructor(private http: HttpClient) { }
 
   trainSom(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/train-som`, {});
+    return this.http.post(`${this.apiUrl}/som/train`, {});
   }
 
-  getImageManual(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-image/manual`, { responseType: 'blob' });
+  getImage(somType: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/som/get-image/${somType}`, { responseType: 'blob' });
   }
 
-  getImageMinisom(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-image/minisom`, { responseType: 'blob' });
-  }
+  // getImage(): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/som/get-image/minisom`, { responseType: 'blob' });
+  // }
 
   getAccuracy(somType: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-accuracy/${somType}`);
+    return this.http.get(`${this.apiUrl}/som/get-accuracy/${somType}`);
   }
 }

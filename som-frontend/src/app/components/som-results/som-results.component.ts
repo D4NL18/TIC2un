@@ -40,7 +40,7 @@ export class SomResultsComponent {
   }
 
   fetchImage() {
-    this.somService.getImageManual().subscribe({
+    this.somService.getImage("manual").subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         this.imageUrlManual = url;
@@ -49,7 +49,7 @@ export class SomResultsComponent {
         console.error('Erro ao buscar imagem:', err);
       }
     });
-    this.somService.getImageMinisom().subscribe({
+    this.somService.getImage("minisom").subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         this.imageUrlMinisom = url;
