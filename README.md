@@ -25,9 +25,11 @@ O segundo método apresentado foi o Deep Learning, no qual foram solicitadas 2 a
 
 ![Demo](backend/results/DL.gif)
 
-### Redes Convolucionais
+### CNN
 
-TBD
+O terceiro roteiro solicitava um algoritmo de CNN, que deveria incluir 2 arquivos, sendo um deles responsável pelo treinamento da rede e armazenamento dos pesos obtidos, e o segundo deve ler estes pesos e executar o algoritmo com base nisso. O primeiro arquivo algoritmo pode ser visto no repositório em backend/CNN/CNN_treino.py, e o segundo, em backend/CNN/CNN_teste.py. A partir do modelo de pesos obtido com a execução do primeiro arquivo, foi desenvolvida uma segunda versão do arquivo CNN_teste.py, inserindo flask para que haja a integração com o frontend. Esta versão foi inserida no arquivo backend.py, que representa o backend geral da aplicação. Com isso, foi criada uma requisição post, que solicita o teste utilizando os pesos, e duas requisições get, que enviam a matriz confusão e as métricas do algoritmo para o frontend.
+
+![Demo](backend/results/CNN.gif)
 
 ### Fuzzy Sistems
 
