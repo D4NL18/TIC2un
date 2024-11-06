@@ -1,0 +1,19 @@
+<div class="kc-result-container">
+    <div *ngIf="!isLoading && !imageUrlK && !imageUrlC" class="initial-kc-result-box"></div>
+    <div *ngIf="isLoading == true" class="loading-kc-result-box">
+        <app-loading-spinner />
+    </div>
+
+    <div class="images-kc-result-container">
+        <div *ngIf="imageUrlK" class="image-kc-result-box">
+          <h3>Resultado K-Means</h3>
+          <img [src]="imageUrlK" alt="K-Means Plot" class="kc-result-image" />
+        </div>
+    
+        <div *ngIf="imageUrlC" class="image-kc-result-box">
+          <h3>Resultado C-Means</h3>
+          <img [src]="imageUrlC" alt="C-Means Plot" class="kc-result-image" />
+        </div>
+    </div>
+
+</div>

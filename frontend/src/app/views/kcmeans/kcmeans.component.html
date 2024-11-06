@@ -1,0 +1,20 @@
+<header>
+    <app-nav />
+</header>
+<main class="kc-page-main">
+    <section class="kc-page-container">
+        <div class="kc-page-title-container">
+            <h1>
+                Bem vindo à Classificação K / C Means
+            </h1>
+        </div>
+        <div class="kc-page-img-box">
+            <app-kcmeans-results></app-kcmeans-results>
+        </div>
+        <div class="kc-button-box">
+            <app-button (click)="onTrainKC()">Clique aqui para realizar KC</app-button>
+            <p>Obs: Pode demorar um pouco</p>
+        </div>
+    </section>
+</main>
+

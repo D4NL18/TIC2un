@@ -3,6 +3,7 @@ import { SomComponent } from './views/som/som.component';
 import { SvmComponent } from './views/svm/svm.component';
 import { DeeplearningComponent } from './views/deeplearning/deeplearning.component';
 import { CnnComponent } from './views/cnn/cnn.component';
+import { KcmeansComponent } from './views/kcmeans/kcmeans.component';
 
 export const routes: Routes = [
     {
@@ -20,5 +21,9 @@ export const routes: Routes = [
     {
         path: "",
         component: SvmComponent
+    },
+    {
+        path: "kc",
+        component: KcmeansComponent
     },
 ];
