@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [LoadingSpinnerComponent, CommonModule],
   templateUrl: './kcmeans-results.component.html',
-  styleUrl: './kcmeans-results.component.scss'
+  styleUrls: ['./kcmeans-results.component.scss']
 })
 export class KcmeansResultsComponent {
   @Output() trainRequested = new EventEmitter<void>()
@@ -21,56 +21,51 @@ export class KcmeansResultsComponent {
   constructor(private kService: KService, private cService: CService) { }
 
   trainKC() {
-    console.log("Treinando K...")
-    this.isLoading = true
+    const data = [
+      { Feature1: 1.5, Feature2: 2.3 },
+      { Feature1: 3.1, Feature2: 4.5 },
+      // Adicione mais pontos de dados conforme necessário
+    ];
+    const n_clusters = 3;
+
+    this.isLoading = true;
+
     this.kService.trainK().subscribe({
       next: (response) => {
-        console.log("Treinamento Concluido", response)
-        this.fetchImageK()
+        console.log("Treinamento K-means Concluído", response);
+        this.fetchImageK();
       },
       error: (err) => {
-        console.log("Erro ao treinar K: ", err)
+        console.log("Erro ao treinar K-means:", err);
+        this.isLoading = false;
       },
       complete: () => {
-        this.isLoading = false
+        this.isLoading = false;
       }
-    })
-    this.cService.trainC().subscribe({
-      next: (response) => {
-        console.log("Treinamento Concluido", response)
-        this.fetchImageC()
-      },
-      error: (err) => {
-        console.log("Erro ao treinar K: ", err)
-      },
-      complete: () => {
-        this.isLoading = false
-      }
-    })
+    });
   }
 
   fetchImageK() {
     this.kService.getImage().subscribe({
       next: (blob) => {
-        const url = URL.createObjectURL(blob)
-        this.imageUrlK = url
+        const url = URL.createObjectURL(blob);
+        this.imageUrlK = url;
       },
       error: (err) => {
         console.error('Erro ao buscar imagem K:', err);
       }
-    })
+    });
   }
 
   fetchImageC() {
     this.cService.getImage().subscribe({
       next: (blob: Blob | MediaSource) => {
-        const url = URL.createObjectURL(blob)
-        this.imageUrlC = url
+        const url = URL.createObjectURL(blob);
+        this.imageUrlC = url;
       },
       error: (err: any) => {
         console.error('Erro ao buscar imagem C:', err);
       }
-    })
+    });
   }
-
 }

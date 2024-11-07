@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class CService {
 
-  private apiUrl = 'http://localhost:5000/k';
+  private apiUrl = 'http://localhost:5000/';
 
   constructor(private http: HttpClient) { }
 
