@@ -22,7 +22,7 @@ export class KService {
   }
 
   getImage(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/elbow`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/image`, { responseType: 'blob' });
   }
 
 }

@@ -21,12 +21,6 @@ export class KcmeansResultsComponent {
   constructor(private kService: KService, private cService: CService) { }
 
   trainKC() {
-    const data = [
-      { Feature1: 1.5, Feature2: 2.3 },
-      { Feature1: 3.1, Feature2: 4.5 },
-      // Adicione mais pontos de dados conforme necessário
-    ];
-    const n_clusters = 3;
 
     this.isLoading = true;
 
@@ -37,6 +31,19 @@ export class KcmeansResultsComponent {
       },
       error: (err) => {
         console.log("Erro ao treinar K-means:", err);
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
+    this.cService.trainC().subscribe({
+      next: (response) => {
+        console.log("Treinamento C-means Concluído", response);
+        this.fetchImageC();
+      },
+      error: (err) => {
+        console.log("Erro ao treinar C-means:", err);
         this.isLoading = false;
       },
       complete: () => {
