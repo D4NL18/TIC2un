@@ -1,0 +1,18 @@
+<div class="fuzzy-result-container">
+    <div *ngIf="!isLoading && !imageUrlNF && !imageUrlF" class="initial-fuzzy-result-box"></div>
+    <div *ngIf="isLoading == true" class="loading-fuzzy-result-box">
+        <app-loading-spinner />
+    </div>
+
+    <div class="images-fuzzy-result-container">
+        <div *ngIf="imageUrlNF" class="image-fuzzy-result-box">
+          <h3>Resultado NeuroFuzzy</h3>
+          <img [src]="imageUrlNF" alt="NF Plot" class="fuzzy-result-image" />
+        </div>
+        <div *ngIf="imageUrlF" class="image-fuzzy-result-box">
+          <h3>Resultado Fuzzy</h3>
+          <img [src]="imageUrlF" alt="Fuzzy Plot" class="fuzzy-result-image" />
+        </div>
+    </div>
+
+</div>
