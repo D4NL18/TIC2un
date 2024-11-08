@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 import { CommonModule } from '@angular/common';
 import { NeurofuzzyService } from '../../services/neurofuzzy.service';
+import { fuzzyService } from '../../services/fuzzy.service';
 
 @Component({
   selector: 'app-nf-results',
@@ -17,7 +18,7 @@ export class NfResultsComponent {
   imageUrlF: string | undefined
   isLoading: boolean = false;
 
-  constructor(private nfService: NeurofuzzyService) { }
+  constructor(private nfService: NeurofuzzyService, private fService: fuzzyService) { }
 
   trainNF() {
 
@@ -36,6 +37,19 @@ export class NfResultsComponent {
         this.isLoading = false;
       }
     });
+    this.fService.trainF().subscribe({
+      next: (response) => {
+        console.log("Treinamento F Concluído", response);
+        this.fetchImageF();
+      },
+      error: (err) => {
+        console.log("Erro ao treinar F:", err);
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   fetchImageNF() {
@@ -46,6 +60,17 @@ export class NfResultsComponent {
       },
       error: (err) => {
         console.error('Erro ao buscar imagem NF:', err);
+      }
+    });
+  }
+  fetchImageF() {
+    this.fService.getImage().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        this.imageUrlF = url;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar imagem F:', err);
       }
     });
   }
