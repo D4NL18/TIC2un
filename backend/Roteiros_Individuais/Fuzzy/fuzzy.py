@@ -10,10 +10,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Configuração do backend do Matplotlib para renderização fora da tela
 plt.switch_backend('Agg')
 
-# Função para configurar o sistema Fuzzy de controle de ventilador
 def create_fuzzy_system(temperature_input, humidity_input):
     # Definindo as variáveis de entrada e saída
     temperature = ctrl.Antecedent(np.arange(0, 41, 1), 'temperature')
@@ -54,8 +52,8 @@ def create_fuzzy_system(temperature_input, humidity_input):
     fan_simulation = ctrl.ControlSystemSimulation(fan_control)
 
     # Definindo as entradas do sistema
-    fan_simulation.input['temperature'] = temperature_input  # Temperatura em graus Celsius
-    fan_simulation.input['humidity'] = humidity_input       # Umidade em porcentagem
+    fan_simulation.input['temperature'] = temperature_input
+    fan_simulation.input['humidity'] = humidity_input
 
     # Computando a saída
     fan_simulation.compute()
@@ -96,7 +94,7 @@ def plot_fuzzy_system():
     fan_speed['medium'] = fuzz.trimf(fan_speed.universe, [50, 70, 90])
     fan_speed['high'] = fuzz.trimf(fan_speed.universe, [70, 100, 100])
 
-    # Plotando as funções de pertinência
+    # Plotando
     fan_speed.view()
 
     # Salvando o gráfico em um arquivo temporário

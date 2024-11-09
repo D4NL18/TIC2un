@@ -30,7 +30,6 @@ confusion_matrix_pt = None
 accuracy_tf = None
 accuracy_pt = None
 
-# Preparação dos dados
 def prepare_data(X, y):
     encoder = LabelEncoder()
     y = encoder.fit_transform(y)
@@ -40,11 +39,9 @@ def prepare_data(X, y):
     X_test = scaler.transform(X_test)
     return X_train, X_test, y_train, y_test
 
-# Train TensorFlow
 def train_tf(X_train, y_train, X_test, y_test):
     global confusion_matrix_tf, accuracy_tf
     
-    # Definir modelo
     model = keras.Sequential([
         layers.Dense(10, activation='relu', input_shape=(X_train.shape[1],)),
         layers.Dense(10, activation='relu'),
@@ -57,20 +54,16 @@ def train_tf(X_train, y_train, X_test, y_test):
 
     model.fit(X_train, y_train, epochs=100, batch_size=5, validation_split=0.2)
 
-    # Avaliação
     test_loss, test_accuracy = model.evaluate(X_test, y_test)
     accuracy_tf = test_accuracy
 
-    # Previsões e matriz de confusão
     y_pred = model.predict(X_test)
     y_pred_classes = np.argmax(y_pred, axis=1)
     confusion_matrix_tf = confusion_matrix(y_test, y_pred_classes)
 
-# Treinamento PyTorch
 def train_pt(X_train, y_train, X_test, y_test):
     global confusion_matrix_pt, accuracy_pt
 
-    # Convertendo para tensores
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
     y_train_tensor = torch.tensor(y_train, dtype=torch.long)
     X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
@@ -96,7 +89,6 @@ def train_pt(X_train, y_train, X_test, y_test):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters())
 
-    # Treinamento
     for epoch in range(100):
         model.train()
         for inputs, labels in train_loader:
@@ -106,7 +98,6 @@ def train_pt(X_train, y_train, X_test, y_test):
             loss.backward()
             optimizer.step()
 
-    # Avaliação
     model.eval()
     with torch.no_grad():
         test_outputs = model(X_test_tensor)
@@ -114,7 +105,6 @@ def train_pt(X_train, y_train, X_test, y_test):
         accuracy_pt = (predicted == y_test_tensor).float().mean().item()
         confusion_matrix_pt = confusion_matrix(y_test, predicted.numpy())
 
-# Plot matriz confusão
 def create_confusion_matrix_image(conf_matrix):
     plt.figure(figsize=(6, 6))
     plt.imshow(conf_matrix, interpolation='nearest', cmap=plt.cm.Blues)
@@ -129,20 +119,17 @@ def create_confusion_matrix_image(conf_matrix):
                  ha='center', va='center',
                  color='white' if conf_matrix[i, j] > thresh else 'black')
 
-    # Salvar a imagem em um arquivo temporário
     temp_dir = tempfile.gettempdir()
     image_path = os.path.join(temp_dir, 'confusion_matrix.png')
     plt.savefig(image_path)
     plt.close()
     return image_path
 
-# Post Treinamentos
 @app.route('/train', methods=['POST'])
 def train():
     global confusion_matrix_tf, confusion_matrix_pt, accuracy_tf, accuracy_pt
     X_train, X_test, y_train, y_test = prepare_data(X, y)
 
-    # Treinamento usando threads
     tf_thread = threading.Thread(target=train_tf, args=(X_train, y_train, X_test, y_test))
     pt_thread = threading.Thread(target=train_pt, args=(X_train, y_train, X_test, y_test))
     
@@ -154,9 +141,8 @@ def train():
 
     return jsonify({"message": "Training completed"}), 200
 
-# Get imagem PyTorch
 @app.route('/confusion-matrix/pt/image', methods=['GET'])
-@cross_origin()  # Aplicando CORS especificamente a este endpoint
+@cross_origin()
 def get_confusion_matrix_image():
     if confusion_matrix_pt is None:
         return jsonify({"error": "Model not trained yet"}), 400
@@ -164,9 +150,8 @@ def get_confusion_matrix_image():
     image_path = create_confusion_matrix_image(confusion_matrix_pt)
     return send_file(image_path, mimetype='image/png')
 
-# Get imagem TensorFlow
 @app.route('/confusion-matrix/tf/image', methods=['GET'])
-@cross_origin()  # Aplicando CORS especificamente a este endpoint
+@cross_origin()
 def get_confusion_matrix_tf_image():
     if confusion_matrix_tf is None:
         return jsonify({"error": "Model not trained yet"}), 400
@@ -174,14 +159,12 @@ def get_confusion_matrix_tf_image():
     image_path = create_confusion_matrix_image(confusion_matrix_tf)
     return send_file(image_path, mimetype='image/png')
 
-# Get accuracy TensorFlow
 @app.route('/accuracy/tf', methods=['GET'])
 def get_accuracy_tf():
     if accuracy_tf is None:
         return jsonify({"error": "Model not trained yet"}), 400
     return jsonify({"accuracy": accuracy_tf}), 200
 
-# Get imagem PyTorch
 @app.route('/accuracy/pt', methods=['GET'])
 def get_accuracy_pt():
     if accuracy_pt is None:

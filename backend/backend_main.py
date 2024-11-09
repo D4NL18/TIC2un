@@ -286,7 +286,7 @@ accuracy_tf = None
 accuracy_pt = None
 
 # Preparação dos dados
-def prepare_data(X, y):
+def prepare_data_DL(X, y):
     encoder = LabelEncoder()
     y = encoder.fit_transform(y)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -386,10 +386,10 @@ def create_confusion_matrix_image(conf_matrix):
 
     # Salvar a imagem em um arquivo temporário
     temp_dir = tempfile.gettempdir()
-    image_path = os.path.join(temp_dir, 'confusion_matrix.png')
-    plt.savefig(image_path)
+    image_path_DL = os.path.join(temp_dir, 'confusion_matrix.png')
+    plt.savefig(image_path_DL)
     plt.close()
-    return image_path
+    return image_path_DL
 
 
 # ====================================================== CNN Tensorflow ===========================================================
@@ -406,8 +406,8 @@ import matplotlib.pyplot as plt
 
 # Diretórios
 model_dir = 'backend/Roteiros_Individuais/CNN_tf/models'
-image_dir = 'Roteiros_Individuais/CNN_tf/images'
-os.makedirs(image_dir, exist_ok=True)
+image_dir_CNN = 'backend/Roteiros_Individuais/CNN_tf/images'
+os.makedirs(image_dir_CNN, exist_ok=True)
 
 # Carregar modelo já treinado no CNN_treino.py
 def load_model():
@@ -445,8 +445,8 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Diretórios
 model_dir = 'backend/Roteiros_Individuais/CNN_finetunning/models'
-image_dir = 'Roteiros_Individuais/CNN_finetunning/image'
-os.makedirs(image_dir, exist_ok=True)
+image_dir_CNN_FT = 'backend/Roteiros_Individuais/CNN_finetunning/image'
+os.makedirs(image_dir_CNN_FT, exist_ok=True)
 
 # Carregar modelo treinado com fine-tuning
 def load_model():
@@ -686,12 +686,12 @@ class ANFIS:
         return mse, mae
 
     # Função para salvar pesos
-    def save_weights(self, file_path="anfis_weights.pkl"):
+    def save_weights(self, file_path="backend/Roteiros_Individuais/NeuroFuzzy/Pesos/anfis_weights.pkl"):
         with open(file_path, 'wb') as file:
             pickle.dump(self.weights, file)
 
     # Função para carregar pesos
-    def load_weights(self, file_path="anfis_weights.pkl"):
+    def load_weights(self, file_path="backend/Roteiros_Individuais/NeuroFuzzy/Pesos/anfis_weights.pkl"):
         if os.path.exists(file_path):
             with open(file_path, 'rb') as file:
                 self.weights = pickle.load(file)
@@ -807,10 +807,10 @@ def train_som_endpoint():
 @app.route('/som/get-image/<som_type>', methods=['GET'])
 def get_image(som_type):
     temp_dir = tempfile.gettempdir()
-    image_path = os.path.join(temp_dir, f'{som_type}_som_plot.png')
+    image_path_SOM = os.path.join(temp_dir, f'{som_type}_som_plot.png')
     
-    if os.path.exists(image_path):
-        return send_file(image_path, mimetype='image/png')
+    if os.path.exists(image_path_SOM):
+        return send_file(image_path_SOM, mimetype='image/png')
     
     return jsonify({"error": f"Image for {som_type} SOM not found"}), 404
 
@@ -850,9 +850,9 @@ def serve_image():
 # ====================================================== HTTP DL ===========================================================
 
 @app.route('/dl/train', methods=['POST'])
-def train():
+def train_dl():
     global confusion_matrix_tf, confusion_matrix_pt, accuracy_tf, accuracy_pt
-    X_train, X_test, y_train, y_test = prepare_data(X, y)
+    X_train, X_test, y_train, y_test = prepare_data_DL(X, y)
 
     tf_thread = threading.Thread(target=train_tf, args=(X_train, y_train, X_test, y_test))
     pt_thread = threading.Thread(target=train_pt, args=(X_train, y_train, X_test, y_test))
@@ -871,8 +871,8 @@ def get_confusion_matrix_image():
     if confusion_matrix_pt is None:
         return jsonify({"error": "Model not trained yet"}), 400
     
-    image_path = create_confusion_matrix_image(confusion_matrix_pt)
-    return send_file(image_path, mimetype='image/png')
+    image_path_DL = create_confusion_matrix_image(confusion_matrix_pt)
+    return send_file(image_path_DL, mimetype='image/png')
 
 @app.route('/dl/image/tf', methods=['GET'])
 @cross_origin()
@@ -880,8 +880,8 @@ def get_confusion_matrix_tf_image():
     if confusion_matrix_tf is None:
         return jsonify({"error": "Model not trained yet"}), 400
     
-    image_path = create_confusion_matrix_image(confusion_matrix_tf)
-    return send_file(image_path, mimetype='image/png')
+    image_path_TF = create_confusion_matrix_image(confusion_matrix_tf)
+    return send_file(image_path_TF, mimetype='image/png')
 
 @app.route('/dl/accuracy/tf', methods=['GET'])
 def get_accuracy_tf():
@@ -927,16 +927,16 @@ def predict_TF():
                      ha='center', va='center',
                      color='white' if conf_matrix[i, j] > thresh else 'black')
 
-    image_path = os.path.join(image_dir, 'confusion_matrix.png')
-    plt.savefig(image_path)
+    image_path_CNN_TF = os.path.join(image_dir_CNN_FT, 'confusion_matrix.png')
+    plt.savefig(image_path_CNN_TF)
     plt.close()
 
     return jsonify({"message": "Predição realizada", "accuracy": global_accuracy, "f1_score": global_f1_score})
 
 @app.route('/cnn/image', methods=['GET'])
 def get_confusion_matrix_TF():
-    image_path = os.path.join(image_dir, 'confusion_matrix.png')
-    return send_file(image_path, mimetype='image/png')
+    image_path_CNN_TF = os.path.join('Roteiros_Individuais/CNN_tf/images', 'confusion_matrix.png')
+    return send_file(image_path_CNN_TF, mimetype='image/png')
 
 @app.route('/cnn/accuracy', methods=['GET'])
 def get_metrics_TF():
@@ -974,16 +974,16 @@ def predict_FT():
                      ha='center', va='center',
                      color='white' if conf_matrix[i, j] > thresh else 'black')
 
-    image_path = os.path.join(image_dir, 'confusion_matrix.png')
-    plt.savefig(image_path)
+    image_path_CNN_FT = os.path.join(image_dir_CNN_FT, 'confusion_matrix.png')
+    plt.savefig(image_path_CNN_FT)
     plt.close()
 
     return jsonify({"message": "Predição realizada", "accuracy": global_accuracy, "f1_score": global_f1_score})
 
 @app.route('/cnn_finetunning/image', methods=['GET'])
 def get_confusion_matrix_FT():
-    image_path = os.path.join(image_dir, 'confusion_matrix.png')
-    return send_file(image_path, mimetype='image/png')
+    image_path_CNN_FT = os.path.join('Roteiros_Individuais/CNN_finetunning/image', 'confusion_matrix.png')
+    return send_file(image_path_CNN_FT, mimetype='image/png')
 
 @app.route('/cnn_finetunning/accuracy', methods=['GET'])
 def get_metrics_FT():

@@ -11,7 +11,6 @@ import pickle
 app = Flask(__name__)
 CORS(app)
 
-# Configuração do backend do Matplotlib para renderização fora da tela
 plt.switch_backend('Agg')
 
 # Função de pertinência Gaussiana

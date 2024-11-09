@@ -11,15 +11,13 @@ import matplotlib.pyplot as plt
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Diretórios
 model_dir = 'backend/Roteiros_Individuais/CNN_finetunning/models'
 image_dir = 'image'
 os.makedirs(image_dir, exist_ok=True)
 
-# Carregar modelo treinado com fine-tuning
 def load_model():
     base_model = applications.VGG16(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
-    # Congelar camadas iniciais e liberar camadas finais para fine-tuning
+
     for layer in base_model.layers[:15]:
         layer.trainable = False
     for layer in base_model.layers[15:]:
@@ -37,12 +35,10 @@ def load_model():
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
-    # Carregar pesos salvos do modelo
     model_path = os.path.join(model_dir, 'fine_tuned_model.weights.h5')
     model.load_weights(model_path)
     return model
 
-# Rota POST para predição
 @app.route('/cnn_finetunning/predict', methods=['POST'])
 def predict():
     global global_accuracy, global_f1_score
@@ -58,7 +54,6 @@ def predict():
     global_accuracy = accuracy_score(y_true, y_pred_classes)
     global_f1_score = f1_score(y_true, y_pred_classes, average='weighted')
 
-    # Gerar e salvar a matriz de confusão
     conf_matrix = confusion_matrix(y_true, y_pred_classes)
     plt.figure(figsize=(10, 7))
     plt.imshow(conf_matrix, cmap='Blues')
@@ -79,13 +74,11 @@ def predict():
 
     return jsonify({"message": "Predição realizada", "accuracy": global_accuracy, "f1_score": global_f1_score})
 
-# Rota GET para obter a matriz de confusão
 @app.route('/cnn_finetunning/image', methods=['GET'])
 def get_confusion_matrix():
     image_path = os.path.join(image_dir, 'confusion_matrix.png')
     return send_file(image_path, mimetype='image/png')
 
-# Rota GET para obter métricas
 @app.route('/cnn_finetunning/accuracy', methods=['GET'])
 def get_metrics():
     return jsonify({"accuracy": global_accuracy, "f1_score": global_f1_score})

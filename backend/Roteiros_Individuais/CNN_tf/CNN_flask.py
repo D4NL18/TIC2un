@@ -12,12 +12,10 @@ app = Flask(__name__)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Diretórios
 model_dir = 'backend/CNN/models'
 image_dir = 'images'
 os.makedirs(image_dir, exist_ok=True)
 
-# Carregar modelo já treinado no CNN_treino.py
 def load_model():
     base_model = applications.VGG16(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
     for layer in base_model.layers:
@@ -36,7 +34,6 @@ def load_model():
     model.load_weights(model_path)
     return model
 
-# Post (executar predição)
 @app.route('/predict', methods=['POST'])
 def predict():
     global global_accuracy, global_f1_score
@@ -52,7 +49,6 @@ def predict():
     global_accuracy = accuracy_score(y_true, y_pred_classes)
     global_f1_score = f1_score(y_true, y_pred_classes, average='weighted')
 
-    #Matriz Confusão
     conf_matrix = confusion_matrix(y_true, y_pred_classes)
     plt.figure(figsize=(10, 7))
     plt.imshow(conf_matrix, cmap='Blues')
@@ -73,13 +69,11 @@ def predict():
 
     return jsonify({"message": "Predição realizada", "accuracy": global_accuracy, "f1_score": global_f1_score})
 
-# Get matriz confusão
 @app.route('/confusion-matrix', methods=['GET'])
 def get_confusion_matrix():
     image_path = os.path.join(image_dir, 'confusion_matrix.png')
     return send_file(image_path, mimetype='image/png')
 
-# Get métricas
 @app.route('/metrics', methods=['GET'])
 def get_metrics():
     return jsonify({"accuracy": global_accuracy, "f1_score": global_f1_score})
