@@ -392,7 +392,7 @@ def create_confusion_matrix_image(conf_matrix):
     return image_path
 
 
-# ====================================================== CNN ===========================================================
+# ====================================================== CNN Tensorflow ===========================================================
 
 import os
 import numpy as np
@@ -405,8 +405,8 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import matplotlib.pyplot as plt
 
 # Diretórios
-model_dir = 'backend/CNN/models'
-image_dir = 'CNN/images'
+model_dir = 'backend/Roteiros_Individuais/CNN_tf/models'
+image_dir = 'Roteiros_Individuais/CNN_tf/images'
 os.makedirs(image_dir, exist_ok=True)
 
 # Carregar modelo já treinado no CNN_treino.py
@@ -428,6 +428,51 @@ def load_model():
     model.load_weights(model_path)
     return model
 
+# ====================================================== CNN Finetunning ===========================================================
+
+import os
+import numpy as np
+import tensorflow as tf
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+from tensorflow import keras
+from keras import datasets, models, layers, applications, utils
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
+import matplotlib.pyplot as plt
+
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Diretórios
+model_dir = 'backend/Roteiros_Individuais/CNN_finetunning/models'
+image_dir = 'Roteiros_Individuais/CNN_finetunning/image'
+os.makedirs(image_dir, exist_ok=True)
+
+# Carregar modelo treinado com fine-tuning
+def load_model():
+    base_model = applications.VGG16(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
+    # Congelar camadas iniciais e liberar camadas finais para fine-tuning
+    for layer in base_model.layers[:15]:
+        layer.trainable = False
+    for layer in base_model.layers[15:]:
+        layer.trainable = True
+
+    model = models.Sequential([
+        base_model,
+        layers.Flatten(),
+        layers.Dense(256, activation='relu'),
+        layers.Dropout(0.5),
+        layers.Dense(10, activation='softmax')
+    ])
+
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), 
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+
+    # Carregar pesos salvos do modelo
+    model_path = os.path.join(model_dir, 'fine_tuned_model.weights.h5')
+    model.load_weights(model_path)
+    return model
 
 # ===================================== K-Means ======================================================
 from flask import Flask, jsonify, send_file
@@ -444,9 +489,8 @@ import os
 import io
 
 app = Flask(__name__)
-CORS(app)  # Configuração do CORS para aceitar qualquer origem e qualquer método
+CORS(app)
 
-# Variável global para armazenar os resultados
 results = None
 
 plt.switch_backend('Agg')
@@ -454,29 +498,29 @@ plt.switch_backend('Agg')
 def train_kmeans():
     global results
 
-    # Carregar e processar o dataset predefinido
+    # Carregar e processar dataset
     iris = load_iris()
     df = pd.DataFrame(iris.data, columns=iris.feature_names)
-    df = df[['sepal length (cm)', 'sepal width (cm)']]  # Selecionar apenas duas features para simplificar
+    df = df[['sepal length (cm)', 'sepal width (cm)']]
 
     # Pré-processamento dos dados
     scaler = MinMaxScaler()
     df[['sepal length (cm)', 'sepal width (cm)']] = scaler.fit_transform(df[['sepal length (cm)', 'sepal width (cm)']])
 
-    # Definir o número de clusters (K=3) e executar o KMeans
+    # Definir o número de clusters
     K = 3
     kmeans = KMeans(n_clusters=K, random_state=0)
     kmeans.fit(df)
     df['Cluster'] = kmeans.labels_
 
-    # Método do Cotovelo para sugerir o número ideal de clusters
+    # Método do Cotovelo
     sse = []
     for k in range(1, 10):
         kmeans = KMeans(n_clusters=k, random_state=0)
         kmeans.fit(df[['sepal length (cm)', 'sepal width (cm)']])
         sse.append(kmeans.inertia_)
 
-    # Salvar o gráfico do Método do Cotovelo em um diretório temporário
+    # Salvar o gráfico em um diretório temporário
     temp_dir = tempfile.gettempdir()
     elbow_plot_path = os.path.join(temp_dir, 'elbow_plot.png')
 
@@ -487,14 +531,14 @@ def train_kmeans():
     plt.title('Método do Cotovelo')
     plt.savefig(elbow_plot_path)
 
-    # Avaliação com Índice de Silhueta para K=3
+    # Avaliação Índice de Silhueta
     silhouette_avg = silhouette_score(df[['sepal length (cm)', 'sepal width (cm)']], df['Cluster'])
     print(f'Silhouette Score para K={K}: {silhouette_avg}')
 
     # Armazenando resultados
     results = {
         'silhouette_score': silhouette_avg,
-        'elbow_plot_path': elbow_plot_path  # Armazena o caminho da imagem temporária
+        'elbow_plot_path': elbow_plot_path
     }
 
     return jsonify({'silhouette_score': silhouette_avg})
@@ -515,10 +559,9 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Variável global para armazenar o caminho da imagem e os resultados
 results = None
 
-plt.switch_backend('Agg')  # Usado para suportar geração de gráficos sem GUI
+plt.switch_backend('Agg')
 
 # Função para calcular o Fuzzy Partition Coefficient (FPC)
 def calculate_fpc(u):
@@ -531,20 +574,19 @@ def calculate_fpc(u):
 def train_fuzzy_cmeans():
     global results
 
-    # Carregar e processar o conjunto de dados Iris
+    # Carregar dataset
     iris = load_iris()
     df = pd.DataFrame(iris.data, columns=iris.feature_names)
-    df = df[['sepal length (cm)', 'sepal width (cm)']]  # Usar apenas duas features
+    df = df[['sepal length (cm)', 'sepal width (cm)']]
 
-    # Pré-processamento dos dados - Normalização
+    # Pré-processamento dos dados
     scaler = MinMaxScaler()
     df[['sepal length (cm)', 'sepal width (cm)']] = scaler.fit_transform(df[['sepal length (cm)', 'sepal width (cm)']])
 
     # Converter DataFrame para matriz para compatibilidade com skfuzzy
     data = df.values.T
 
-    # Configuração do Fuzzy C-Means
-    c = 3  # Número de clusters
+    c = 3 
     cntr, u, _, _, _, _, _ = fuzz.cluster.cmeans(data, c=c, m=2.0, error=0.005, maxiter=1000)
 
     # Calcular o Índice de Partição Fuzzy (FPC)
@@ -572,7 +614,6 @@ def train_fuzzy_cmeans():
     plt.legend()
     plt.savefig(cmeans_plot_path)
 
-    # Armazenar resultados
     results = {
         'fpc': fpc,
         'cmeans_plot_path': cmeans_plot_path
@@ -598,7 +639,6 @@ import pickle
 app = Flask(__name__)
 CORS(app)
 
-# Configuração do backend do Matplotlib para renderização fora da tela
 plt.switch_backend('Agg')
 
 # Função de pertinência Gaussiana
@@ -685,27 +725,25 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Configuração do backend do Matplotlib para renderização fora da tela
 plt.switch_backend('Agg')
 
-# Função para configurar o sistema Fuzzy de controle de ventilador
 def create_fuzzy_system(temperature_input, humidity_input):
-    # Definindo as variáveis de entrada e saída
+
     temperature = ctrl.Antecedent(np.arange(0, 41, 1), 'temperature')
     humidity = ctrl.Antecedent(np.arange(0, 101, 1), 'humidity')
     fan_speed = ctrl.Consequent(np.arange(0, 101, 1), 'fan_speed')
 
-    # Definindo as funções de pertinência para a temperatura
+    # Definindo as funções para a temperatura
     temperature['low'] = fuzz.trimf(temperature.universe, [0, 0, 20])
     temperature['medium'] = fuzz.trimf(temperature.universe, [15, 25, 35])
     temperature['high'] = fuzz.trimf(temperature.universe, [30, 40, 40])
 
-    # Definindo as funções de pertinência para a umidade
+    # Definindo as funções para a umidade
     humidity['low'] = fuzz.trimf(humidity.universe, [0, 0, 40])
     humidity['medium'] = fuzz.trimf(humidity.universe, [30, 50, 70])
     humidity['high'] = fuzz.trimf(humidity.universe, [60, 100, 100])
 
-    # Definindo as funções de pertinência para a velocidade do ventilador
+    # Definindo as funções para a velocidade do ventilador
     fan_speed['off'] = fuzz.trimf(fan_speed.universe, [0, 0, 30])
     fan_speed['low'] = fuzz.trimf(fan_speed.universe, [20, 40, 60])
     fan_speed['medium'] = fuzz.trimf(fan_speed.universe, [50, 70, 90])
@@ -728,41 +766,34 @@ def create_fuzzy_system(temperature_input, humidity_input):
     fan_control = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9])
     fan_simulation = ctrl.ControlSystemSimulation(fan_control)
 
-    # Definindo as entradas do sistema
-    fan_simulation.input['temperature'] = temperature_input  # Temperatura em graus Celsius
-    fan_simulation.input['humidity'] = humidity_input       # Umidade em porcentagem
+    # Definindo os inputs
+    fan_simulation.input['temperature'] = temperature_input
+    fan_simulation.input['humidity'] = humidity_input
 
-    # Computando a saída
     fan_simulation.compute()
 
     return fan_simulation.output['fan_speed']
 
 # ====================================================== HTTP SOM ===========================================================
 
-#Post para realizar treinamentos
 @app.route('/som/train', methods=['POST'])
 def train_som_endpoint():
-    # Carregar dataset e normalização dos dados
+
     iris = load_iris()
     X = iris.data
     y = iris.target
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Inicializar SOM manual
     som_grid_size = 7
     som = np.random.rand(som_grid_size, som_grid_size, X.shape[1])
 
-    # Treinar SOM manual
     accuracy_manual_som, manual_som_image_path = train_som(X_scaled, y, som, max_iterations=500, learning_rate=0.5, radius=3)
     
-    # Armazenar a precisão do SOM manual
     accuracy_store['manual'] = accuracy_manual_som
 
-    # Treinar MiniSom e obter a imagem e a precisão
     minisom_image_path, accuracy_minisom = train_minisom(X_scaled, y)
 
-    # Armazenar a precisão do MiniSom
     accuracy_store['minisom'] = accuracy_minisom
 
     return jsonify({
@@ -773,7 +804,6 @@ def train_som_endpoint():
         "accuracy_minisom": accuracy_minisom
     })
 
-# Get para imagem
 @app.route('/som/get-image/<som_type>', methods=['GET'])
 def get_image(som_type):
     temp_dir = tempfile.gettempdir()
@@ -784,7 +814,6 @@ def get_image(som_type):
     
     return jsonify({"error": f"Image for {som_type} SOM not found"}), 404
 
-#Get para accuracy
 @app.route('/som/get-accuracy/<som_type>', methods=['GET'])
 def get_accuracy(som_type):
     accuracy = accuracy_store.get(som_type)
@@ -795,13 +824,11 @@ def get_accuracy(som_type):
 
 # ====================================================== HTTP SVM ===========================================================
 
-# Post (executar SVM)
 @app.route('/svm/run', methods=['POST'])
 def run_svm_endpoint():
     run_svm()
     return jsonify({"message": "Modelo SVM executado com sucesso!"})
 
-# Get (resultados)
 @app.route('/svm/results', methods=['GET'])
 def fetch_results():  
     if results is None:
@@ -812,7 +839,6 @@ def fetch_results():
         'image_url': f"{request.host_url}image"
     })
 
-# Get (imagem)
 @app.route('/svm/image', methods=['GET'])
 def serve_image():
     if results is None:
@@ -823,13 +849,11 @@ def serve_image():
 
 # ====================================================== HTTP DL ===========================================================
 
-# Post Treinamentos
 @app.route('/dl/train', methods=['POST'])
 def train():
     global confusion_matrix_tf, confusion_matrix_pt, accuracy_tf, accuracy_pt
     X_train, X_test, y_train, y_test = prepare_data(X, y)
 
-    # Treinamento usando threads
     tf_thread = threading.Thread(target=train_tf, args=(X_train, y_train, X_test, y_test))
     pt_thread = threading.Thread(target=train_pt, args=(X_train, y_train, X_test, y_test))
     
@@ -841,9 +865,8 @@ def train():
 
     return jsonify({"message": "Training completed"}), 200
 
-# Get imagem PyTorch
 @app.route('/dl/image/pt', methods=['GET'])
-@cross_origin()  # Aplicando CORS especificamente a este endpoint
+@cross_origin()
 def get_confusion_matrix_image():
     if confusion_matrix_pt is None:
         return jsonify({"error": "Model not trained yet"}), 400
@@ -851,9 +874,8 @@ def get_confusion_matrix_image():
     image_path = create_confusion_matrix_image(confusion_matrix_pt)
     return send_file(image_path, mimetype='image/png')
 
-# Get imagem TensorFlow
 @app.route('/dl/image/tf', methods=['GET'])
-@cross_origin()  # Aplicando CORS especificamente a este endpoint
+@cross_origin()
 def get_confusion_matrix_tf_image():
     if confusion_matrix_tf is None:
         return jsonify({"error": "Model not trained yet"}), 400
@@ -861,14 +883,12 @@ def get_confusion_matrix_tf_image():
     image_path = create_confusion_matrix_image(confusion_matrix_tf)
     return send_file(image_path, mimetype='image/png')
 
-# Get accuracy TensorFlow
 @app.route('/dl/accuracy/tf', methods=['GET'])
 def get_accuracy_tf():
     if accuracy_tf is None:
         return jsonify({"error": "Model not trained yet"}), 400
     return jsonify({"accuracy": accuracy_tf}), 200
 
-# Get imagem PyTorch
 @app.route('/dl/accuracy/pt', methods=['GET'])
 def get_accuracy_pt():
     if accuracy_pt is None:
@@ -876,12 +896,10 @@ def get_accuracy_pt():
     return jsonify({"accuracy": accuracy_pt}), 200
 
 
-# ====================================================== HTTP CNN ===========================================================
+# ====================================================== HTTP CNN Tensorflow ===========================================================
 
-
-# Post (executar predição)
 @app.route('/cnn/predict', methods=['POST'])
-def predict():
+def predict_TF():
     global global_accuracy, global_f1_score
 
     (_, _), (X_test, y_test) = datasets.cifar10.load_data()
@@ -895,7 +913,6 @@ def predict():
     global_accuracy = accuracy_score(y_true, y_pred_classes)
     global_f1_score = f1_score(y_true, y_pred_classes, average='weighted')
 
-    #Matriz Confusão
     conf_matrix = confusion_matrix(y_true, y_pred_classes)
     plt.figure(figsize=(10, 7))
     plt.imshow(conf_matrix, cmap='Blues')
@@ -916,28 +933,70 @@ def predict():
 
     return jsonify({"message": "Predição realizada", "accuracy": global_accuracy, "f1_score": global_f1_score})
 
-# Get matriz confusão
 @app.route('/cnn/image', methods=['GET'])
-def get_confusion_matrix():
+def get_confusion_matrix_TF():
     image_path = os.path.join(image_dir, 'confusion_matrix.png')
     return send_file(image_path, mimetype='image/png')
 
-# Get métricas
 @app.route('/cnn/accuracy', methods=['GET'])
-def get_metrics():
+def get_metrics_TF():
     return jsonify({"accuracy": global_accuracy, "f1_score": global_f1_score})
 
+
+# ====================================================== HTTP CNN Finetunning ===========================================================
+
+@app.route('/cnn_finetunning/predict', methods=['POST'])
+def predict_FT():
+    global global_accuracy, global_f1_score
+
+    (_, _), (X_test, y_test) = datasets.cifar10.load_data()
+    X_test = X_test.astype('float32') / 255.0
+    y_true = y_test.reshape(-1)
+
+    model = load_model()
+    y_pred = model.predict(X_test)
+    y_pred_classes = np.argmax(y_pred, axis=1)
+
+    global_accuracy = accuracy_score(y_true, y_pred_classes)
+    global_f1_score = f1_score(y_true, y_pred_classes, average='weighted')
+
+    conf_matrix = confusion_matrix(y_true, y_pred_classes)
+    plt.figure(figsize=(10, 7))
+    plt.imshow(conf_matrix, cmap='Blues')
+    plt.title('Matriz de Confusão - CIFAR-10')
+    plt.colorbar()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    thresh = conf_matrix.max() / 2.
+    for i in range(conf_matrix.shape[0]):
+        for j in range(conf_matrix.shape[1]):
+            plt.text(j, i, format(conf_matrix[i, j], 'd'),
+                     ha='center', va='center',
+                     color='white' if conf_matrix[i, j] > thresh else 'black')
+
+    image_path = os.path.join(image_dir, 'confusion_matrix.png')
+    plt.savefig(image_path)
+    plt.close()
+
+    return jsonify({"message": "Predição realizada", "accuracy": global_accuracy, "f1_score": global_f1_score})
+
+@app.route('/cnn_finetunning/image', methods=['GET'])
+def get_confusion_matrix_FT():
+    image_path = os.path.join(image_dir, 'confusion_matrix.png')
+    return send_file(image_path, mimetype='image/png')
+
+@app.route('/cnn_finetunning/accuracy', methods=['GET'])
+def get_metrics_FT():
+    return jsonify({"accuracy": global_accuracy, "f1_score": global_f1_score})
 
 # ====================================================== HTTP K-Means ===========================================================
 
 
-# POST para realizar treinamentos e salvar a imagem no diretório temporário
 @app.route('/k/run', methods=['POST'])
 def run_k():
     return train_kmeans()
     
 
-# GET para obter a imagem do método do cotovelo
 @app.route('/k/image', methods=['GET'])
 def get_kmeans_image():
     if results is None or 'elbow_plot_path' not in results:
@@ -945,7 +1004,6 @@ def get_kmeans_image():
 
     elbow_plot_path = results['elbow_plot_path']
 
-    # Verificar se a imagem ainda existe
     if os.path.exists(elbow_plot_path):
         return send_file(elbow_plot_path, mimetype='image/png')
     else:
@@ -954,12 +1012,10 @@ def get_kmeans_image():
 
 # ====================================================== HTTP C-Means ===========================================================
 
-# POST para realizar o treinamento e salvar a imagem
 @app.route('/c/run', methods=['POST'])
 def run_c():
     return train_fuzzy_cmeans()
 
-# GET para obter a imagem dos clusters
 @app.route('/c/image', methods=['GET'])
 def get_cmeans_image():
     if results is None or 'cmeans_plot_path' not in results:
@@ -967,7 +1023,6 @@ def get_cmeans_image():
 
     cmeans_plot_path = results['cmeans_plot_path']
 
-    # Verificar se a imagem ainda existe
     if os.path.exists(cmeans_plot_path):
         return send_file(cmeans_plot_path, mimetype='image/png')
     else:
@@ -975,7 +1030,7 @@ def get_cmeans_image():
 
 
 # ====================================================== HTTP Neuro Fuzzy ===========================================================
-# Endpoint para rodar o treinamento e salvar resultados
+
 @app.route('/nf/run', methods=['POST'])
 def run_anfis():
     global results
@@ -985,19 +1040,15 @@ def run_anfis():
     anfis_model.train(X, y, epochs=100)
     anfis_model.save_weights()
 
-    # Carrega os pesos para garantir consistência
     anfis_model.load_weights()
     y_pred, _ = anfis_model.forward(X)
-    y_pred = scaler_y.inverse_transform(y_pred.reshape(-1, 1)).flatten()  # Reverte a normalização
+    y_pred = scaler_y.inverse_transform(y_pred.reshape(-1, 1)).flatten()
 
-    # Calcula a precisão
     mse, mae = anfis_model.calculate_accuracy(velocidades, y_pred)
 
-    # Armazena resultados globais para outros endpoints
     results = {'mse': mse, 'mae': mae, 'y_true': velocidades, 'y_pred': y_pred}
     return jsonify({'mse': mse, 'mae': mae})
 
-# Endpoint para retornar o gráfico de predição
 @app.route('/nf/image', methods=['GET'])
 def get_image_nf():
     if results is None:
@@ -1006,7 +1057,6 @@ def get_image_nf():
     y_true = results['y_true']
     y_pred = results['y_pred']
     
-    # Salva o gráfico temporário
     temp_dir = tempfile.gettempdir()
     plot_path = os.path.join(temp_dir, 'anfis_prediction.png')
     
@@ -1025,25 +1075,23 @@ def get_image_nf():
 # ====================================================== HTTP Fuzzy ===========================================================
 @app.route('/f/run', methods=['POST'])
 def get_fan_speed():
-    # Pegando os dados de temperatura e umidade do corpo da requisição
+
     data = request.get_json()
     temperature_input = data.get('temperature', 30)
     humidity_input = data.get('humidity', 60)
 
-    # Calculando a velocidade do ventilador com o sistema Fuzzy
+
     fan_speed = create_fuzzy_system(temperature_input, humidity_input)
 
-    # Retornando o resultado como JSON
     return jsonify({"fan_speed": fan_speed})
 
 @app.route('/f/image', methods=['GET'])
 def plot_fuzzy_system():
-    # Gerando o gráfico para visualizar as funções de pertinência
+
     temperature = ctrl.Antecedent(np.arange(0, 41, 1), 'temperature')
     humidity = ctrl.Antecedent(np.arange(0, 101, 1), 'humidity')
     fan_speed = ctrl.Consequent(np.arange(0, 101, 1), 'fan_speed')
 
-    # Definindo as funções de pertinência
     temperature['low'] = fuzz.trimf(temperature.universe, [0, 0, 20])
     temperature['medium'] = fuzz.trimf(temperature.universe, [15, 25, 35])
     temperature['high'] = fuzz.trimf(temperature.universe, [30, 40, 40])
@@ -1057,17 +1105,13 @@ def plot_fuzzy_system():
     fan_speed['medium'] = fuzz.trimf(fan_speed.universe, [50, 70, 90])
     fan_speed['high'] = fuzz.trimf(fan_speed.universe, [70, 100, 100])
 
-    # Plotando as funções de pertinência
     fan_speed.view()
 
-    # Salvando o gráfico em um arquivo temporário
     tmpfile = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
     plt.savefig(tmpfile.name)
     tmpfile.close()
 
-    # Retornando o arquivo gerado como resposta
     return send_file(tmpfile.name, mimetype='image/png')
 
-# Inicializa servidor
 if __name__ == '__main__':
     app.run(debug=True)

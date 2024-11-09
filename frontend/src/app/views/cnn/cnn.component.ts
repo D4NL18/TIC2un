@@ -15,7 +15,8 @@ export class CnnComponent {
 
   onTrainCNN() {
     if(this.cnnResultsComponent) {
-      this.cnnResultsComponent.trainCNN()
+      this.cnnResultsComponent.trainCNN_FT()
+      this.cnnResultsComponent.trainCNN_TF()
     }
   }
 }
