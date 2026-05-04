@@ -1,0 +1,6 @@
+from controllers.svm_controller import svm_blueprint
+from controllers.dl_controller import dl_blueprint
+from controllers.cnn_controller import cnn_blueprint
+from controllers.clustering_controller import clustering_blueprint
+from controllers.fuzzy_controller import fuzzy_blueprint
+from controllers.som_controller import som_blueprint
